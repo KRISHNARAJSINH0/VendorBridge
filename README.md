@@ -2,14 +2,16 @@
 
 VendorBridge is a lightweight, high-performance, role-based mini Enterprise Resource Planning (ERP) application engineered to automate the business-to-business (B2B) purchasing pipeline. It mirrors core industrial ERP modules (like Odoo or SAP) by managing the entire transactional lifecycle: from Request for Quotation (RFQ) creation to automated invoice compilation.
 
+Built entirely within a unified Next.js framework, this project handles both frontend UI rendering and server-side database transaction logic natively.
+
 ---
 
 ## 🛠️ Core Tech Stack
 
-*   **Frontend / Client Frame**: Next.js 14+ (App Router, React Server & Client Components)
+*   **Framework**: Next.js 14+ (App Router, Server Actions, Client Components)
 *   **Styling Engine**: Tailwind CSS (Responsive Utility-First Layouts)
-*   **Backend Server Engine**: Python (FastAPI / Flask), Uvicorn ASGI server
-*   **Database Engine**: SQLite (Relational DB for instant, transaction-safe state changes)
+*   **Database ORM**: Prisma (Type-safe database client queries)
+*   **Database Engine**: SQLite (Zero-configuration file-based relational database)
 *   **Authentication Engine**: Mock Session Context Routing with a Developer-Override System
 
 ---
@@ -43,10 +45,11 @@ The ERP enforces strict Role-Based Access Control (RBAC) to isolate business ope
 
 ## ⚡ Hackathon-Optimized Execution Highlights
 
+*   **⚡ Integrated Server Actions**: Eliminates CORS issues and complex external API setups by querying the SQLite database directly from React UI components.
 *   **⚡ Side-by-Side Comparison Engine**: Auto-highlights the most optimal bid row using a localized matrix calculation array method.
 *   **🔒 Presentation Session-Override**: The login panel includes a rapid "Developer Mode Dropdown" allowing evaluators to switch between all 4 system roles instantly without re-typing authentication credentials.
 *   **🖨️ Zero-Weight PDF Execution**: Utilizes standard browser window print routines paired with a CSS `@media print` layout schema to bypass heavy server-side canvas generation delays.
-*   **📨 Deep-Link Mail Engine**: Compiles dynamic invoice tokens directly into native system standard mail deep links (`mailto:` structure) to trigger local transactional notifications without risking firewall or SMTP blocks.
+*   **📨 Deep-Link Mail Engine**: Compiles dynamic invoice tokens directly into native system standard mail deep links (`mailto:` structure) to trigger local transactional notifications without risking firewall blocks.
 
 ---
 
@@ -54,21 +57,20 @@ The ERP enforces strict Role-Based Access Control (RBAC) to isolate business ope
 
 ```text
 vendorbridge/
-├── backend/
-│   ├── main.py              # Main Python API Engine
-│   ├── database.py          # SQLite connection and session initialization
-│   ├── models.py            # Relational database entities schema
-│   ├── requirements.txt     # Python Dependencies
-│   └── .env.example         # System configuration blueprint
-├── frontend/                # Next.js Application Root
-│   ├── src/
-│   │   ├── app/             # App Router Core Routing Matrix
-│   │   │   ├── layout.js    # Global layout viewport wrapper
-│   │   │   ├── page.js      # Dashboard entry hub & switchboard
-│   │   │   └── login/       # Target auth view layout
-│   │   └── components/      # Reusable dashboard layouts & shared widgets
-│   ├── package.json
-│   └── .env.example         # UI API routing endpoint environment properties
+├── prisma/
+│   ├── schema.prisma        # Prisma Relational Data Model Definition
+│   └── dev.db               # SQLite Local Database File (Auto-generated)
+├── src/
+│   ├── app/                 # App Router Core Routing Matrix
+│   │   ├── layout.js        # Global layout viewport wrapper
+│   │   ├── page.js          # Dashboard entry hub & switchboard
+│   │   ├── login/           # Target auth view layout
+│   │   └── api/             # Next.js API Routes (if using fetch)
+│   ├── components/          # Reusable dashboard layouts & shared widgets
+│   └── lib/
+│       └── prisma.js        # Singleton Prisma DB Client Instance
+├── package.json
+├── .env.example             # Project environment properties template
 └── README.md
 ```
 
@@ -79,45 +81,33 @@ vendorbridge/
 Follow these quick commands to spin up the application on your workspace environment:
 
 ### Prerequisites
-*   Python 3.8+ installed
-*   Node.js v18.17+ installed (Required for modern Next.js environments)
+*   Node.js v18.17+ installed
 
-### 1. Backend Configuration (Python)
+### Step-by-Step Build Commands
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env
-uvicorn main:app --reload
-```
-*The backend API server will spin up on: `http://localhost:8000`*
-
-### 2. Frontend Configuration (Next.js)
-```bash
-cd ../frontend
+# 1. Install modern framework dependencies
 npm install
+
+# 2. Create env file from template
 cp .env.example .env
+
+# 3. Generate the Prisma Client and migrate the SQLite DB schema
+npx prisma migrate dev --name init
+
+# 4. Spin up the development server
 npm run dev
 ```
-*The client-side UI dashboard will spin up on: `http://localhost:3000`*
+*The complete full-stack ERP dashboard will spin up on: `http://localhost:3000`*
 
 ---
 
 ## 📝 Environment Variable Matrix
 
-Never commit real keys. The application loads setup properties from native local environments matching this structure:
+Never commit real configurations. The application loads setup properties from local environments matching this template layout:
 
-### Backend `.env` File Blueprint
+### Project `.env` File Blueprint
 ```env
-DATABASE_URL=sqlite:///./vendorbridge.db
-JWT_SECRET=hackathon_secret_development_key
-DEBUG_MODE=True
-PORT=8000
-```
-
-### Frontend `.env` File Blueprint (Next.js Configuration)
-*Note: In Next.js, keys prefixed with `NEXT_PUBLIC_` are safely exposed to the client side browser context.*
-```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+DATABASE_URL="file:./dev.db"
+NEXTAUTH_SECRET="hackathon_secret_development_key"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
