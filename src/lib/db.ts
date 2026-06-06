@@ -11,6 +11,7 @@ export interface Vendor {
   contactPhone: string;
   status: "Active" | "Pending" | "Blacklisted";
   riskScore: "Low" | "Medium" | "High";
+  rating?: number;
   address?: string;
   createdAt: string;
   updatedAt: string;
@@ -63,7 +64,7 @@ export interface Quotation {
   rfqTitle: string; // denormalized for UI
   vendorId: string;
   vendorName: string; // denormalized for UI
-  status: "Draft" | "Submitted";
+  status: "Draft" | "Submitted" | "Approved";
   subtotal: number;
   gstPercent: number;
   grandTotal: number;
@@ -92,7 +93,8 @@ const INITIAL_VENDORS: Vendor[] = [
     contactEmail: "info@techcore.com",
     contactPhone: "+91 98765 43210",
     status: "Active",
-    riskScore: "Low",
+    riskScore: "Medium",
+    rating: 4.2,
     address: "Tech Park, Phase 2, Pune, Maharashtra",
     createdAt: new Date("2026-01-15").toISOString(),
     updatedAt: new Date("2026-01-15").toISOString(),
@@ -105,7 +107,8 @@ const INITIAL_VENDORS: Vendor[] = [
     contactEmail: "sales@infrasupplies.in",
     contactPhone: "+91 91234 56789",
     status: "Active",
-    riskScore: "Medium",
+    riskScore: "Low",
+    rating: 4.5,
     address: "Industrial Area, Sector 4, Gurgaon, Haryana",
     createdAt: new Date("2026-02-10").toISOString(),
     updatedAt: new Date("2026-02-10").toISOString(),
@@ -119,6 +122,7 @@ const INITIAL_VENDORS: Vendor[] = [
     contactPhone: "+91 88888 77777",
     status: "Blacklisted",
     riskScore: "High",
+    rating: 2.5,
     address: "Port Road, Block B, Navi Mumbai, Maharashtra",
     createdAt: new Date("2025-11-05").toISOString(),
     updatedAt: new Date("2026-04-12").toISOString(),
@@ -132,6 +136,7 @@ const INITIAL_VENDORS: Vendor[] = [
     contactPhone: "+91 77777 66666",
     status: "Pending",
     riskScore: "Medium",
+    rating: 4.0,
     address: "Kirti Nagar Furniture Market, New Delhi",
     createdAt: new Date("2026-05-20").toISOString(),
     updatedAt: new Date("2026-05-20").toISOString(),
@@ -145,9 +150,24 @@ const INITIAL_VENDORS: Vendor[] = [
     contactPhone: "+91 99999 88888",
     status: "Active",
     riskScore: "Low",
+    rating: 4.6,
     address: "MIDC Industrial Area, Bhosari, Pune",
     createdAt: new Date("2026-03-01").toISOString(),
     updatedAt: new Date("2026-03-01").toISOString(),
+  },
+  {
+    id: "v-6",
+    name: "Office Need Co.",
+    category: "Office Infrastructure",
+    gstNumber: "27AABON1042F1ZR",
+    contactEmail: "sales@officeneed.com",
+    contactPhone: "+91 95555 44444",
+    status: "Active",
+    riskScore: "Low",
+    rating: 3.8,
+    address: "Kirti Nagar, New Delhi",
+    createdAt: new Date("2026-04-01").toISOString(),
+    updatedAt: new Date("2026-04-01").toISOString(),
   }
 ];
 
@@ -166,7 +186,7 @@ const INITIAL_RFQS: RFQ[] = [
       { id: "item-1-1", itemName: "Ergonomic Mesh Chair", quantity: 25, unit: "Nos", estimatedCost: 6000 },
       { id: "item-1-2", itemName: "Motorized Standing Desk", quantity: 10, unit: "Nos", estimatedCost: 10000 }
     ],
-    vendorIds: ["v-4", "v-2"],
+    vendorIds: ["v-2", "v-1", "v-6"],
     attachments: [
       {
         id: "att-1",
@@ -201,20 +221,60 @@ const INITIAL_QUOTATIONS: Quotation[] = [
     id: "q-1",
     rfqId: "rfq-1",
     rfqTitle: "Office Furniture Procurement Q2",
-    vendorId: "v-4",
-    vendorName: "OfficePro Furnitures",
+    vendorId: "v-2",
+    vendorName: "Infra Supplies Pvt Ltd",
+    status: "Submitted",
+    subtotal: 156780,
+    gstPercent: 18,
+    grandTotal: 185000,
+    paymentTerms: "30 Days Net",
+    warranty: "3 Years",
+    notes: "Direct factory pricing. Eco-certified materials used.",
+    createdAt: new Date("2026-06-04").toISOString(),
+    updatedAt: new Date("2026-06-04").toISOString(),
+    items: [
+      { id: "qi-1-1", rfqItemId: "item-1-1", itemName: "Ergonomic Mesh Chair", quantity: 25, unitPrice: 4200, total: 105000, deliveryDays: 10 },
+      { id: "qi-1-2", rfqItemId: "item-1-2", itemName: "Motorized Standing Desk", quantity: 10, unitPrice: 5178, total: 51780, deliveryDays: 10 }
+    ]
+  },
+  {
+    id: "q-2",
+    rfqId: "rfq-1",
+    rfqTitle: "Office Furniture Procurement Q2",
+    vendorId: "v-1",
+    vendorName: "TechCore Ltd",
     status: "Submitted",
     subtotal: 169500,
     gstPercent: 18,
     grandTotal: 200010,
-    paymentTerms: "30 Days Net from date of invoice delivery",
-    warranty: "3 Years on frame and cylinders, 1 year on mesh fabrics",
-    notes: "Delivery can be completed in stages. Sourced from local certified suppliers.",
+    paymentTerms: "30 Days Net",
+    warranty: "3 Years",
+    notes: "Premium build quality with dynamic ergonomics support.",
     createdAt: new Date("2026-06-04").toISOString(),
     updatedAt: new Date("2026-06-04").toISOString(),
     items: [
-      { id: "qi-1-1", rfqItemId: "item-1-1", itemName: "Ergonomic Mesh Chair", quantity: 25, unitPrice: 3500, total: 87500, deliveryDays: 7 },
-      { id: "qi-1-2", rfqItemId: "item-1-2", itemName: "Motorized Standing Desk", quantity: 10, unitPrice: 8200, total: 82000, deliveryDays: 14 }
+      { id: "qi-2-1", rfqItemId: "item-1-1", itemName: "Ergonomic Mesh Chair", quantity: 25, unitPrice: 3500, total: 87500, deliveryDays: 14 },
+      { id: "qi-2-2", rfqItemId: "item-1-2", itemName: "Motorized Standing Desk", quantity: 10, unitPrice: 8200, total: 82000, deliveryDays: 14 }
+    ]
+  },
+  {
+    id: "q-3",
+    rfqId: "rfq-1",
+    rfqTitle: "Office Furniture Procurement Q2",
+    vendorId: "v-6",
+    vendorName: "Office Need Co.",
+    status: "Submitted",
+    subtotal: 182034,
+    gstPercent: 18,
+    grandTotal: 214800,
+    paymentTerms: "15 Days Net",
+    warranty: "1 Year",
+    notes: "Immediate delivery available. Standard model chairs.",
+    createdAt: new Date("2026-06-04").toISOString(),
+    updatedAt: new Date("2026-06-04").toISOString(),
+    items: [
+      { id: "qi-3-1", rfqItemId: "item-1-1", itemName: "Ergonomic Mesh Chair", quantity: 25, unitPrice: 4800, total: 120000, deliveryDays: 7 },
+      { id: "qi-3-2", rfqItemId: "item-1-2", itemName: "Motorized Standing Desk", quantity: 10, unitPrice: 6204, total: 62040, deliveryDays: 7 }
     ]
   }
 ];
