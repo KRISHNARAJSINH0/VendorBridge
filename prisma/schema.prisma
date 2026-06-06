@@ -1,13 +1,67 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
+}
+
+model VendorProfile {
+  id               Int         @id @default(autoincrement())
+  name             String
+  email            String      @unique
+  complianceStatus String      @default("PENDING") // PENDING, APPROVED, REJECTED
+  documents        String      @default("[]")      // JSON string list of filenames
+  joinedAt         DateTime    @default(now())
+  quotations       Quotation[]
+}
+
+model RFQ {
+  id             Int             @id @default(autoincrement())
+  title          String
+  description    String
+  status         String          @default("DRAFT") // DRAFT, OPEN, CLOSED
+  items          String          @default("[]")    // JSON list of objects: [{description, quantity}]
+  createdAt      DateTime        @default(now())
+  quotations     Quotation[]
+  purchaseOrders PurchaseOrder[]
+}
+
+model Quotation {
+  id             Int             @id @default(autoincrement())
+  rfqId          Int
+  rfq            RFQ             @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  vendorId       Int
+  vendor         VendorProfile   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  price          Float
+  deliveryDays   Int
+  status         String          @default("SUBMITTED") // SUBMITTED, SELECTED, REJECTED
+  remarks        String?
+  createdAt      DateTime        @default(now())
+  purchaseOrders PurchaseOrder[]
+}
+
+model PurchaseOrder {
+  id              Int        @id @default(autoincrement())
+  rfqId           Int
+  rfq             RFQ        @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  quotationId     Int
+  quotation       Quotation  @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  status          String     @default("DRAFT") // DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, SENT, COMPLETED
+  approvalRemarks String?
+  approvedBy      String?
+  createdAt       DateTime   @default(now())
+  invoices        Invoice[]
+}
+
+model Invoice {
+  id              Int           @id @default(autoincrement())
+  purchaseOrderId Int
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  amount          Float
+  status          String        @default("PENDING") // PENDING, PAID
+  createdAt       DateTime      @default(now())
 }
