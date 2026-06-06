@@ -3,32 +3,45 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Plus, ReceiptText, ShieldCheck, Landmark, CalendarRange, ArrowRight, Search } from "lucide-react";
-import { getQuotationsAction } from "@/lib/actions/quotation";
+import { Plus, ReceiptText, ShieldCheck, Landmark, CalendarRange, ArrowRight, Search, Sparkles } from "lucide-react";
+import { getQuotationsAction, updateQuotationAction } from "@/lib/actions/quotation";
+import { getRFQsAction } from "@/lib/actions/rfq";
+import { getVendorsAction } from "@/lib/actions/vendor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Quotation } from "@/lib/db";
+import { Quotation, RFQ, Vendor } from "@/lib/db";
+import QuotationComparison from "@/components/quotations/quotation-comparison";
 
 export default function QuotationListPage() {
   const pathname = usePathname();
   const [quotations, setQuotations] = useState<Quotation[]>([]);
+  const [rfqs, setRfqs] = useState<RFQ[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showComparison, setShowComparison] = useState(false);
+
+  const loadData = async () => {
+    try {
+      const [quotesData, rfqsData, vendorsData] = await Promise.all([
+        getQuotationsAction(),
+        getRFQsAction(),
+        getVendorsAction()
+      ]);
+      setQuotations(quotesData);
+      setRfqs(rfqsData);
+      setVendors(vendorsData);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadQuotations = async () => {
-      try {
-        const data = await getQuotationsAction();
-        setQuotations(data);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadQuotations();
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -41,6 +54,8 @@ export default function QuotationListPage() {
 
   const getStatusBadge = (status: Quotation["status"]) => {
     switch (status) {
+      case "Approved":
+        return "bg-brand-green/20 text-brand-green border-brand-green-border/30 shadow-[0_0_8px_rgba(74,222,128,0.1)]";
       case "Submitted":
         return "bg-brand-green-muted/20 text-brand-green border-brand-green-border/20 shadow-[0_0_8px_rgba(74,222,128,0.05)]";
       case "Draft":
@@ -49,6 +64,21 @@ export default function QuotationListPage() {
         return "bg-zinc-800 text-zinc-400";
     }
   };
+
+  if (showComparison) {
+    return (
+      <QuotationComparison
+        onBack={() => setShowComparison(false)}
+        rfqs={rfqs}
+        quotations={quotations}
+        vendors={vendors}
+        onSelectVendor={async (quotationId) => {
+          await updateQuotationAction(quotationId, { status: "Approved" });
+          await loadData();
+        }}
+      />
+    );
+  }
 
   const filteredQuotations = quotations.filter((quote) => {
     const query = searchQuery.toLowerCase().trim();
@@ -74,7 +104,13 @@ export default function QuotationListPage() {
             Review incoming supplier bids, billing tables, tax terms, and warranty timelines.
           </p>
         </div>
-        <div className="mt-4 sm:mt-0">
+        <div className="mt-4 sm:mt-0 flex items-center gap-3">
+          <Button
+            onClick={() => setShowComparison(true)}
+            className="bg-zinc-900 border border-brand-green/30 text-brand-green font-semibold hover:bg-brand-green-muted/10 h-10 px-4 cursor-pointer"
+          >
+            <Sparkles className="mr-2 h-4 w-4" /> Compare Quotations
+          </Button>
           <Link href="/quotations/submit">
             <Button className="bg-brand-green text-zinc-950 font-semibold hover:bg-brand-green-hover hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer shadow-lg green-glow-button h-10 px-4">
               <Plus className="mr-2 h-4 w-4" /> Submit Quotation
