@@ -1,26 +1,128 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-cyber-bg: #0A0A0A;
+  --color-cyber-green: #22C55E;
+  --color-cyber-green-dim: rgba(34, 197, 94, 0.3);
+  --color-cyber-green-glow: rgba(34, 197, 94, 0.15);
+  --font-mono: var(--font-share-tech-mono), monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes grid-move {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 40px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes scanline {
+  0% {
+    top: 0%;
+  }
+  100% {
+    top: 100%;
+  }
 }
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 8px #22C55E;
+  }
+  50% {
+    opacity: 0.3;
+    box-shadow: 0 0 2px #22C55E;
+  }
+}
+
+@keyframes border-pulse {
+  0%, 100% {
+    border-color: rgba(34, 197, 94, 0.3);
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.1);
+  }
+  50% {
+    border-color: rgba(34, 197, 94, 0.7);
+    box-shadow: 0 0 25px rgba(34, 197, 94, 0.3);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(34, 197, 94, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(34, 197, 94, 0.05) 1px, transparent 1px);
+  animation: grid-move 20s linear infinite;
+}
+
+.animate-scanline {
+  position: absolute;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to bottom, transparent, rgba(34, 197, 94, 0.2), transparent);
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+}
+
+.animate-blink {
+  animation: blink 2s infinite;
+}
+
+.animate-border-pulse {
+  animation: border-pulse 4s infinite ease-in-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Glassmorphism panel */
+.glass-cyber {
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+/* Glow effects */
+.glow-green {
+  text-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.glow-box-green {
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
+}
+
+/* Scrollbar styling for futuristic look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(34, 197, 94, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 197, 94, 0.6);
+}
+
+body {
+  background: #0A0A0A;
+  color: #EDEDED;
+  overflow-x: hidden;
+}
+
