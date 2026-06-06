@@ -1,0 +1,217 @@
+{
+  "vendors": [
+    {
+      "id": "v-1",
+      "name": "TechCore Ltd",
+      "category": "IT & Software",
+      "gstNumber": "27AADCT4291B1Z0",
+      "contactEmail": "info@techcore.com",
+      "contactPhone": "+91 98765 43210",
+      "status": "Active",
+      "riskScore": "Low",
+      "address": "Tech Park, Phase 2, Pune, Maharashtra",
+      "createdAt": "2026-01-15T00:00:00.000Z",
+      "updatedAt": "2026-01-15T00:00:00.000Z"
+    },
+    {
+      "id": "v-2",
+      "name": "Infra Supplies Pvt Ltd",
+      "category": "Construction & Raw Materials",
+      "gstNumber": "27AAACS1429B2Z0",
+      "contactEmail": "sales@infrasupplies.in",
+      "contactPhone": "+91 91234 56789",
+      "status": "Active",
+      "riskScore": "Medium",
+      "address": "Industrial Area, Sector 4, Gurgaon, Haryana",
+      "createdAt": "2026-02-10T00:00:00.000Z",
+      "updatedAt": "2026-02-10T00:00:00.000Z"
+    },
+    {
+      "id": "v-3",
+      "name": "FastLog Transport",
+      "category": "Logistics & Shipping",
+      "gstNumber": "27AAIFL8924C1Z9",
+      "contactEmail": "logistics@fastlog.co",
+      "contactPhone": "+91 88888 77777",
+      "status": "Blacklisted",
+      "riskScore": "High",
+      "address": "Port Road, Block B, Navi Mumbai, Maharashtra",
+      "createdAt": "2025-11-05T00:00:00.000Z",
+      "updatedAt": "2026-04-12T00:00:00.000Z"
+    },
+    {
+      "id": "v-4",
+      "name": "OfficePro Furnitures",
+      "category": "Office Infrastructure",
+      "gstNumber": "27AABCO2941D3ZA",
+      "contactEmail": "orders@officepro.com",
+      "contactPhone": "+91 77777 66666",
+      "status": "Pending",
+      "riskScore": "Medium",
+      "address": "Kirti Nagar Furniture Market, New Delhi",
+      "createdAt": "2026-05-20T00:00:00.000Z",
+      "updatedAt": "2026-05-20T00:00:00.000Z"
+    },
+    {
+      "id": "v-5",
+      "name": "Smart Industrial Solutions",
+      "category": "Industrial Equipment",
+      "gstNumber": "27AAESI7742E1ZS",
+      "contactEmail": "support@smartind.org",
+      "contactPhone": "+91 99999 88888",
+      "status": "Active",
+      "riskScore": "Low",
+      "address": "MIDC Industrial Area, Bhosari, Pune",
+      "createdAt": "2026-03-01T00:00:00.000Z",
+      "updatedAt": "2026-03-01T00:00:00.000Z"
+    }
+  ],
+  "rfqs": [
+    {
+      "id": "rfq-1",
+      "title": "Office Furniture Procurement Q2",
+      "category": "Office Infrastructure",
+      "budget": 250000,
+      "deadline": "2026-06-15",
+      "description": "Procurement of ergonomic mesh office chairs and motorized height-adjustable standing desks for the 3rd floor office expansion.",
+      "status": "Published",
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "updatedAt": "2026-06-01T00:00:00.000Z",
+      "items": [
+        {
+          "id": "item-1-1",
+          "itemName": "Ergonomic Mesh Chair",
+          "quantity": 25,
+          "unit": "Nos",
+          "estimatedCost": 6000
+        },
+        {
+          "id": "item-1-2",
+          "itemName": "Motorized Standing Desk",
+          "quantity": 10,
+          "unit": "Nos",
+          "estimatedCost": 10000
+        }
+      ],
+      "vendorIds": [
+        "v-4",
+        "v-2"
+      ],
+      "attachments": [
+        {
+          "id": "att-1",
+          "fileName": "office_layout_spec.pdf",
+          "fileUrl": "/mock-files/office_layout_spec.pdf",
+          "fileSize": 2450000,
+          "createdAt": "2026-06-01T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "rfq-2",
+      "title": "High Performance Server Hardware",
+      "category": "IT & Software",
+      "budget": 1200000,
+      "deadline": "2026-06-30",
+      "description": "Purchase of high-performance database servers with dual Intel Xeon processors, 512GB RAM, and NVMe SSD RAID storage arrays.",
+      "status": "Draft",
+      "createdAt": "2026-06-05T00:00:00.000Z",
+      "updatedAt": "2026-06-05T00:00:00.000Z",
+      "items": [
+        {
+          "id": "item-2-1",
+          "itemName": "Database Server Node A",
+          "quantity": 2,
+          "unit": "Nos",
+          "estimatedCost": 500000
+        },
+        {
+          "id": "item-2-2",
+          "itemName": "Gigabit Ethernet Switch 24-Port",
+          "quantity": 4,
+          "unit": "Nos",
+          "estimatedCost": 50000
+        }
+      ],
+      "vendorIds": [
+        "v-1",
+        "v-5"
+      ],
+      "attachments": []
+    }
+  ],
+  "quotations": [
+    {
+      "id": "q-1",
+      "rfqId": "rfq-1",
+      "rfqTitle": "Office Furniture Procurement Q2",
+      "vendorId": "v-4",
+      "vendorName": "OfficePro Furnitures",
+      "status": "Submitted",
+      "subtotal": 169500,
+      "gstPercent": 18,
+      "grandTotal": 200010,
+      "paymentTerms": "30 Days Net from date of invoice delivery",
+      "warranty": "3 Years on frame and cylinders, 1 year on mesh fabrics",
+      "notes": "Delivery can be completed in stages. Sourced from local certified suppliers.",
+      "createdAt": "2026-06-04T00:00:00.000Z",
+      "updatedAt": "2026-06-04T00:00:00.000Z",
+      "items": [
+        {
+          "id": "qi-1-1",
+          "rfqItemId": "item-1-1",
+          "itemName": "Ergonomic Mesh Chair",
+          "quantity": 25,
+          "unitPrice": 3500,
+          "total": 87500,
+          "deliveryDays": 7
+        },
+        {
+          "id": "qi-1-2",
+          "rfqItemId": "item-1-2",
+          "itemName": "Motorized Standing Desk",
+          "quantity": 10,
+          "unitPrice": 8200,
+          "total": 82000,
+          "deliveryDays": 14
+        }
+      ]
+    },
+    {
+      "rfqId": "rfq-1",
+      "rfqTitle": "Office Furniture Procurement Q2",
+      "vendorId": "v-2",
+      "vendorName": "Infra Supplies Pvt Ltd",
+      "status": "Submitted",
+      "subtotal": 3500,
+      "gstPercent": 18,
+      "grandTotal": 4130,
+      "paymentTerms": "30 Days Net",
+      "warranty": "1 Year warranty",
+      "notes": "",
+      "items": [
+        {
+          "id": "qi-o7f8p",
+          "rfqItemId": "item-1-1",
+          "itemName": "Ergonomic Mesh Chair",
+          "quantity": 25,
+          "unitPrice": 100,
+          "total": 2500,
+          "deliveryDays": 7
+        },
+        {
+          "id": "qi-a128eo",
+          "rfqItemId": "item-1-2",
+          "itemName": "Motorized Standing Desk",
+          "quantity": 10,
+          "unitPrice": 100,
+          "total": 1000,
+          "deliveryDays": 7
+        }
+      ],
+      "id": "q-2-td74",
+      "createdAt": "2026-06-06T05:42:49.067Z",
+      "updatedAt": "2026-06-06T05:42:49.067Z"
+    }
+  ]
+}
