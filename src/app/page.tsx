@@ -10,7 +10,7 @@ export default function Home() {
   const [rememberMe, setRememberMe] = useState(false);
   
   // Realtime system terminal logger
-  const [terminalLogs, setTerminalLogs] = useState([
+  const [terminalLogs, setTerminalLogs] = useState<string[]>([
     "SYS.LOG // VBRIDGE BOOT INITIALIZED...",
     "SECURE CONTEXT ROOTED ON NODE-829A",
     "DB CLIENT LOADED: PRISMA-SQLITE-V7",
@@ -25,7 +25,7 @@ export default function Home() {
       setSystemTime(now.toISOString().replace("T", " // ").slice(0, -5));
     };
     updateTime();
-    const timer = setInterval(updateTime, 1000);
+    const timer = window.setInterval(updateTime, 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -44,7 +44,7 @@ export default function Home() {
       "INTEGRATION NODE: DISPATCH COMPLETED [200 OK]"
     ];
 
-    const logInterval = setInterval(() => {
+    const logInterval = window.setInterval(() => {
       const randomMsg = logsPool[Math.floor(Math.random() * logsPool.length)];
       const now = new Date();
       const timeStr = now.toTimeString().split(" ")[0];
@@ -54,7 +54,7 @@ export default function Home() {
     return () => clearInterval(logInterval);
   }, [isSubmitting, loginStatus]);
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
       setLoginStatus("ERROR");
@@ -93,6 +93,10 @@ export default function Home() {
           "SYS.STATUS: SYNC-ACCESS PROTOCOL CONFIRMED // GRANTED",
           `WELCOME OPERATOR // CONSOLE SESSION REDIRECTED TO SYSTEM ROOT`
         ]);
+        // Redirect to dashboard vendors page on login grant
+        setTimeout(() => {
+          window.location.href = "/vendors";
+        }, 800);
       }, 1500);
     }, 1500);
   };
@@ -272,7 +276,7 @@ export default function Home() {
               {/* Form Options Wrapper: Remember & Forgot Pass */}
               <div className="flex items-center justify-between text-[11px] pt-1">
                 {/* Remember Me Checkbox */}
-                <label className="flex items-center gap-2 cursor-pointer text-[#aaa] hover:text-[#eee] transition-colors select-none">
+                <label className="flex items-center gap-2 cursor-pointer text-[#aaa] hover:text-[#eee] transition-colors select-none text-xs">
                   <div className="relative flex items-center justify-center">
                     <input
                       type="checkbox"

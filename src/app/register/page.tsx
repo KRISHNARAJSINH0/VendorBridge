@@ -20,8 +20,8 @@ export default function Register() {
   // Step 2 Form Data
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [logoFile, setLogoFile] = useState(null);
-  const [licenseFile, setLicenseFile] = useState(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [agreePolicy, setAgreePolicy] = useState(false);
 
@@ -29,7 +29,7 @@ export default function Register() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [generatedVendorCode, setGeneratedVendorCode] = useState("");
-  const [terminalLogs, setTerminalLogs] = useState([
+  const [terminalLogs, setTerminalLogs] = useState<string[]>([
     "SYS.ONBOARD // REGISTER WIZARD BOOTED...",
     "SECURE ROUTE: NODE-829A // REGISTER-NODE",
     "STATUS: AWAITING STEP_1 PROTOCOL DATA..."
@@ -42,11 +42,11 @@ export default function Register() {
       setSystemTime(now.toISOString().replace("T", " // ").slice(0, -5));
     };
     updateTime();
-    const timer = setInterval(updateTime, 1000);
+    const timer = window.setInterval(updateTime, 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const handleNextStep = (e) => {
+  const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Quick validation for Step 1
@@ -79,7 +79,7 @@ export default function Register() {
   };
 
   // Upload Simulators
-  const handleLogoChange = (e) => {
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setLogoFile(file);
@@ -91,7 +91,7 @@ export default function Register() {
     }
   };
 
-  const handleLicenseChange = (e) => {
+  const handleLicenseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setLicenseFile(file);
@@ -103,7 +103,7 @@ export default function Register() {
     }
   };
 
-  const handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
