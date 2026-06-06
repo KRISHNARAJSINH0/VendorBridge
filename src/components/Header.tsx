@@ -3,9 +3,12 @@ import React, { useState } from "react";
 import { useAppState } from "../context/StateContext";
 import { Bell, RefreshCw, UserCheck } from "lucide-react";
 
-export default function Header({ activeView }) {
+interface HeaderProps {
+  activeView: string;
+}
+
+export default function Header({ activeView }: HeaderProps) {
   const { currentUser, users, loginUser, resetDemoData } = useAppState();
-  const [showDropdown, setShowDropdown] = useState(false);
 
   if (!currentUser) return null;
 
@@ -13,10 +16,10 @@ export default function Header({ activeView }) {
   const adminUser = users.find((u) => u.role === "Admin");
   const procurementUser = users.find((u) => u.role === "Procurement Officer");
   const managerUser = users.find((u) => u.role === "Manager");
-  const vendorUser = users.find((u) => u.role === "Vendor" && u.vendorId === "v2"); // TechSupply by default
-  const vendorUserAcme = users.find((u) => u.role === "Vendor" && u.vendorId === "v1"); // Acme
+  const vendorUser = users.find((u) => u.role === "Vendor" && u.vendorId === "vvnd_techcore"); // TechCore by default
+  const vendorUserAcme = users.find((u) => u.role === "Vendor" && u.vendorId === "vvnd_infrasupp"); // InfraSupp
 
-  const handleRoleChange = (e) => {
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const role = e.target.value;
     let targetUser;
     if (role === "Admin") targetUser = adminUser;
@@ -27,7 +30,6 @@ export default function Header({ activeView }) {
 
     if (targetUser) {
       loginUser(targetUser.email);
-      setShowDropdown(false);
     }
   };
 
@@ -75,15 +77,15 @@ export default function Header({ activeView }) {
           <UserCheck size={16} className="sandbox-icon" />
           <span className="sandbox-label">Sandbox:</span>
           <select
-            value={currentUser.role === "Vendor" ? (currentUser.vendorId === "v1" ? "VendorAcme" : "Vendor") : currentUser.role}
+            value={currentUser.role === "Vendor" ? (currentUser.vendorId === "vvnd_infrasupp" ? "VendorAcme" : "Vendor") : currentUser.role}
             onChange={handleRoleChange}
             className="sandbox-select"
           >
             <option value="Admin">Admin</option>
             <option value="Procurement Officer">Procurement Officer</option>
             <option value="Manager">Manager / Approver</option>
-            <option value="Vendor">Vendor (TechSupply)</option>
-            <option value="VendorAcme">Vendor (Acme Corp)</option>
+            <option value="Vendor">Vendor (TechCore)</option>
+            <option value="VendorAcme">Vendor (Infra Supplies)</option>
           </select>
         </div>
 

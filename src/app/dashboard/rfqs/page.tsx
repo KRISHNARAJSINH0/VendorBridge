@@ -29,6 +29,8 @@ export default function RFQListPage() {
       }
     };
     loadRFQs();
+    const interval = setInterval(loadRFQs, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -75,7 +77,7 @@ export default function RFQListPage() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <Link href="/rfqs/create">
+          <Link href="/dashboard/rfqs/create">
             <Button className="bg-brand-green text-zinc-950 font-semibold hover:bg-brand-green-hover hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer shadow-lg green-glow-button h-10 px-4">
               <Plus className="mr-2 h-4 w-4" /> Create RFQ
             </Button>
@@ -112,7 +114,7 @@ export default function RFQListPage() {
           <p className="text-xs text-muted-foreground max-w-xs mt-1 mb-6">
             Get started by launching your first RFQ bidding event for supplier partners.
           </p>
-          <Link href="/rfqs/create">
+          <Link href="/dashboard/rfqs/create">
             <Button className="bg-brand-green text-zinc-950 hover:bg-brand-green-hover text-xs font-semibold cursor-pointer">
               Launch Wizard
             </Button>
@@ -162,7 +164,7 @@ export default function RFQListPage() {
                       <span>{rfq.items.length} Line Items</span>
                     </div>
                     {rfq.status === "Published" && (
-                      <Link href={`/quotations/submit?rfqId=${rfq.id}`} className="inline-flex items-center gap-1 bg-brand-green-muted/20 text-brand-green border border-brand-green-border/30 hover:bg-brand-green/10 px-3 py-1.5 rounded-lg text-xs font-semibold select-none">
+                      <Link href={`/dashboard/quotations/submit?rfqId=${rfq.id}`} className="inline-flex items-center gap-1 bg-brand-green-muted/20 text-brand-green border border-brand-green-border/30 hover:bg-brand-green/10 px-3 py-1.5 rounded-lg text-xs font-semibold select-none">
                         Bid <ArrowRight className="h-3 w-3" />
                       </Link>
                     )}

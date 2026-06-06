@@ -15,10 +15,22 @@ import {
   ClipboardList,
   Settings,
   LogOut,
-  User
+  User,
+  LucideIcon
 } from "lucide-react";
 
-export default function Sidebar({ activeView, setActiveView }) {
+interface SidebarProps {
+  activeView: string;
+  setActiveView: (view: string) => void;
+}
+
+interface MenuItem {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+}
+
+export default function Sidebar({ activeView, setActiveView }: SidebarProps) {
   const { currentUser, logoutUser } = useAppState();
 
   if (!currentUser) return null;
@@ -26,7 +38,7 @@ export default function Sidebar({ activeView, setActiveView }) {
   const role = currentUser.role;
 
   // Get menu items based on role
-  const getMenuItems = () => {
+  const getMenuItems = (): MenuItem[] => {
     switch (role) {
       case "Admin":
         return [

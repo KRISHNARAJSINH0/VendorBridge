@@ -157,3 +157,49 @@
 .premium-gradient {
   background: linear-gradient(180deg, oklch(0.11 0.006 240) 0%, oklch(0.09 0.005 240) 100%);
 }
+
+/* Print Overrides for Professional PDF/Print Generation */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  /* Hide navbar, sidebar, close button, and print buttons */
+  aside, 
+  nav, 
+  button, 
+  .no-print,
+  [role="dialog"] button {
+    display: none !important;
+  }
+  /* Remove dialog box constraint, border-shadow, and make it full-width */
+  [role="dialog"] {
+    position: static !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+  }
+  /* Force dark colored texts to black for ink friendliness */
+  .text-brand-green,
+  .text-emerald-400,
+  .text-foreground,
+  .text-muted-foreground {
+    color: black !important;
+  }
+  /* Set table borders to clean outline */
+  table, th, td {
+    border: 1px solid #ddd !important;
+    border-collapse: collapse !important;
+    color: black !important;
+  }
+  /* Show only print content and take full space */
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}

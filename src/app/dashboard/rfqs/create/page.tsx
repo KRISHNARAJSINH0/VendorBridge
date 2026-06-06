@@ -38,6 +38,7 @@ import {
 import { getVendorsAction } from "@/lib/actions/vendor";
 import { createRFQAction } from "@/lib/actions/rfq";
 import { Vendor } from "@/lib/db";
+import { useAuth } from "@/context/auth-context";
 
 // Stepper configuration
 const STEPS = [
@@ -87,6 +88,7 @@ type RFQFormValues = zod.infer<typeof rfqSchema>;
 
 export default function CreateRFQPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loadingVendors, setLoadingVendors] = useState(true);
@@ -198,6 +200,7 @@ export default function CreateRFQPage() {
   const onFormSubmit = async (values: RFQFormValues, publish = true) => {
     const rfqData = {
       ...values,
+      createdById: user?.id || "unknown",
       status: publish ? "Published" as const : "Draft" as const,
       attachments: attachments.map((a) => ({
         id: a.id,
@@ -213,7 +216,7 @@ export default function CreateRFQPage() {
       toast.success(publish ? "RFQ Published successfully" : "RFQ Draft saved", {
         description: `Tender event "${values.title}" created.`,
       });
-      router.push("/rfqs");
+      router.push("/dashboard/rfqs");
     } catch (e) {
       toast.error("Failed to create RFQ");
     }

@@ -1,0 +1,122 @@
+
+> vendorbridge@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.7 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.159.244.8:3000
+- Environments: .env
+✓ Ready in 1188ms
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of c:\Users\KRISHNARAJSINH\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * c:\Users\KRISHNARAJSINH\OneDrive\Desktop\VB\package-lock.json
+
+
+○ Compiling / ...
+✓ Finished filesystem cache database compaction in 88s
+
+thread 'tokio-runtime-worker' (13444) panicked at C:\Users\runneradmin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.43.0\src\io\blocking.rs:76:46:
+OS can't spawn worker thread: Insufficient system resources exist to complete the requested service. (os error 1450)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'tokio-runtime-worker' (27184) panicked at C:\Users\runneradmin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.43.0\src\io\blocking.rs:76:46:
+OS can't spawn worker thread: The paging file is too small for this operation to complete. (os error 1455)
+
+
+
+
+
+
+
+
+#
+#
+#
+#
+# Fatal process out of memory: Re-embedded builtins: set permissions
+# Fatal process out of memory: Re-embedded builtins: set permissions
+#
+# Fatal process out of memory: Re-embedded builtins: set permissions
+# Fatal process out of memory: Re-embedded builtins: set permissions
+#
+----- Native stack trace -----
+#
+----- Native stack trace -----
+#
+
+----- Native stack trace -----
+----- Native stack trace -----
+
+
+
+ 1: 00007FF754900ECD 
+ 1: 00007FF754900ECD node::MultiIsolatePlatform::DisposeIsolate+5341
+ 2: 00007FF755D62576 v8::base::FatalOOM+54
+ 3: 00007FF7555F4D56 v8::Function::NewInstance+390
+ 4: 00007FF75545BCFE v8::CppHeap::CollectGarbageInYoungGenerationForTesting+111438
+ 5: 00007FF75548F2DF SSL_CTX_set_default_read_buffer_len+41247
+ 2: 00007FF755D62576 
+ 1: 00007FF754900ECD node::MultiIsolatePlatform::DisposeIsolate+5341
+ 6: 00007FF75548FD92 SSL_CTX_set_default_read_buffer_len+43986
+ 3: 00007FF7555F4D56 
+ 7: 00007FF755490772 SSL_CTX_set_default_read_buffer_len+46514
+ 4: 00007FF75545BCFE 
+ 2: 00007FF755D62576 v8::base::FatalOOM+54
+ 8: 00007FF754F8DDC3 v8::internal::Version::GetSONAME+122307
+ 5: 00007FF75548F2DF 
+ 1: 00007FF754900ECD node::MultiIsolatePlatform::DisposeIsolate+5341
+ 3: 00007FF7555F4D56 v8::Function::NewInstance+390
+ 9: 00007FF75561FEE6 v8::Isolate::Initialize+662
+ 6: 00007FF75548FD92 
+ 4: 00007FF75545BCFE v8::CppHeap::CollectGarbageInYoungGenerationForTesting+111438
+10: 00007FF754ABA14D node::SetIsolateUpForNode+749
+ 7: 00007FF755490772 
+ 5: 00007FF75548F2DF SSL_CTX_set_default_read_buffer_len+41247
+ 2: 00007FF755D62576 v8::base::FatalOOM+54
+11: 00007FF754815B73 RSA_meth_get_flags+222691
+ 8: 00007FF754F8DDC3 
+ 3: 00007FF7555F4D56 v8::Function::NewInstance+390
+ 6: 00007FF75548FD92 SSL_CTX_set_default_read_buffer_len+43986
+12: 00007FF754814F09 RSA_meth_get_flags+219513
+ 9: 00007FF75561FEE6 
+ 4: 00007FF75545BCFE v8::CppHeap::CollectGarbageInYoungGenerationForTesting+111438
+ 7: 00007FF755490772 SSL_CTX_set_default_read_buffer_len+46514
+13: 00007FF75481EA90 RSA_meth_get_flags+259328
+10: 00007FF754ABA14D 
+ 8: 00007FF754F8DDC3 v8::internal::Version::GetSONAME+122307
+ 5: 00007FF75548F2DF SSL_CTX_set_default_read_buffer_len+41247
+14: 00007FF75564A096 uv_thread_detach+150
+11: 00007FF754815B73 
+ 6: 00007FF75548FD92 SSL_CTX_set_default_read_buffer_len+43986
+ 9: 00007FF75561FEE6 v8::Isolate::Initialize+662
+15: 00007FF7568A92B3 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2904003
+12: 00007FF754814F09 
+ 7: 00007FF755490772 SSL_CTX_set_default_read_buffer_len+46514
+10: 00007FF754ABA14D node::SetIsolateUpForNode+749
+16: 00007FFC0FB0E957 BaseThreadInitThunk+23
+13: 00007FF75481EA90 
+ 8: 00007FF754F8DDC3 v8::internal::Version::GetSONAME+122307
+11: 00007FF754815B73 RSA_meth_get_flags+222691
+17: 00007FFC11227C1C RtlUserThreadStart+44
+14: 00007FF75564A096 
+ 9: 00007FF75561FEE6 v8::Isolate::Initialize+662
+12: 00007FF754814F09 RSA_meth_get_flags+219513
+15: 00007FF7568A92B3 
+10: 00007FF754ABA14D node::SetIsolateUpForNode+749
+13: 00007FF75481EA90 RSA_meth_get_flags+259328
+16: 00007FFC0FB0E957 BaseThreadInitThunk+23
+11: 00007FF754815B73 RSA_meth_get_flags+222691
+14: 00007FF75564A096 uv_thread_detach+150
+17: 00007FFC11227C1C RtlUserThreadStart+44
+12: 00007FF754814F09 RSA_meth_get_flags+219513
+15: 00007FF7568A92B3 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2904003
+13: 00007FF75481EA90 RSA_meth_get_flags+259328
+16: 00007FFC0FB0E957 BaseThreadInitThunk+23
+14: 00007FF75564A096 uv_thread_detach+150
+17: 00007FFC11227C1C RtlUserThreadStart+44
+15: 00007FF7568A92B3 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2904003
+16: 00007FFC0FB0E957 BaseThreadInitThunk+23
+17: 00007FFC11227C1C RtlUserThreadStart+44

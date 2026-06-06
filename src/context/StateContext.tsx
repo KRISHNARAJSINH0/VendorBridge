@@ -1,19 +1,133 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-const StateContext = createContext();
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  vendorId: string | null;
+}
 
-export function StateProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [activeView, setActiveView] = useState("dashboard");
-  const [users, setUsers] = useState([]);
-  const [vendors, setVendors] = useState([]);
-  const [categories, setCategories] = useState(["IT & Hardware", "Office Supplies", "Facility Management", "Marketing Services"]);
-  const [rfqs, setRfqs] = useState([]);
-  const [quotations, setQuotations] = useState([]);
-  const [purchaseOrders, setPurchaseOrders] = useState([]);
-  const [invoices, setInvoices] = useState([]);
-  const [logs, setLogs] = useState([]);
+export interface Vendor {
+  id: string;
+  name: string;
+  email: string;
+  category: string;
+  status: string;
+  rating: number;
+  dateAdded: string;
+}
+
+export interface RFQItem {
+  name: string;
+  qty: number;
+  unit: string;
+  targetPrice: number;
+}
+
+export interface RFQ {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  deadline: string;
+  status: string;
+  items: RFQItem[];
+  assignedVendors: string[];
+  selectedQuotationId: string | null;
+  managerRemarks: string;
+}
+
+export interface QuotationItem {
+  name: string;
+  price: number;
+}
+
+export interface Quotation {
+  id: string;
+  rfqId: string;
+  vendorId: string;
+  vendorName: string;
+  totalPrice: number;
+  deliveryDays: number;
+  remarks: string;
+  status: string;
+  submittedDate: string;
+  items: QuotationItem[];
+}
+
+export interface PurchaseOrder {
+  id: string;
+  rfqId: string;
+  vendorId: string;
+  vendorName: string;
+  total: number;
+  createdDate: string;
+  status: string;
+}
+
+export interface Invoice {
+  id: string;
+  poId: string;
+  vendorId: string;
+  vendorName: string;
+  total: number;
+  createdDate: string;
+  status: string;
+}
+
+export interface ActivityLog {
+  timestamp: string;
+  role: string;
+  message: string;
+  type: string;
+}
+
+interface StateContextType {
+  currentUser: User | null;
+  activeView: string;
+  setActiveView: (view: string) => void;
+  users: User[];
+  vendors: Vendor[];
+  categories: string[];
+  rfqs: RFQ[];
+  quotations: Quotation[];
+  purchaseOrders: PurchaseOrder[];
+  invoices: Invoice[];
+  logs: ActivityLog[];
+  loginUser: (email: string) => User;
+  registerUser: (userData: any) => Promise<User | undefined>;
+  logoutUser: () => void;
+  createUser: (userData: any) => Promise<void>;
+  deleteUser: (userId: string) => Promise<void>;
+  toggleVendorStatus: (vendorId: string) => Promise<void>;
+  addVendor: (vendorData: any) => Promise<void>;
+  createRFQ: (rfqData: any) => Promise<void>;
+  selectBestQuotation: (rfqId: string, quoteId: string) => Promise<void>;
+  approveOrRejectRFQ: (rfqId: string, approvalStatus: string, remarks: string) => Promise<void>;
+  generatePOAndInvoice: (rfqId: string, quoteId: string) => Promise<void>;
+  submitQuotation: (quoteData: any) => Promise<void>;
+  updateInvoiceStatus: (invoiceId: string, status: string) => Promise<void>;
+  resetDemoData: () => Promise<void>;
+  clearTransactions: () => Promise<void>;
+  addLog: (role: string, message: string, type?: string) => Promise<void>;
+}
+
+const StateContext = createContext<StateContextType | undefined>(undefined);
+
+export function StateProvider({ children }: { children: ReactNode }) {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [activeView, setActiveView] = useState<string>("dashboard");
+  const [users, setUsers] = useState<User[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [categories] = useState<string[]>(["IT Hardware", "Office Supplies", "Furniture", "Logistics"]);
+  const [rfqs, setRfqs] = useState<RFQ[]>([]);
+  const [quotations, setQuotations] = useState<Quotation[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
 
   // Fetch all master and transactional data from the database
   const fetchAllData = async () => {
@@ -60,13 +174,13 @@ export function StateProvider({ children }) {
   }, []);
 
   // Save persistent parameters
-  const saveState = (key, val) => {
+  const saveState = (key: string, val: any) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(key, JSON.stringify(val));
     }
   };
 
-  const loginUser = (email) => {
+  const loginUser = (email: string): User => {
     const user = users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
     if (!user) {
       throw new Error("Invalid email. Please register first.");
@@ -79,7 +193,7 @@ export function StateProvider({ children }) {
     return user;
   };
 
-  const registerUser = async (userData) => {
+  const registerUser = async (userData: any): Promise<User | undefined> => {
     const res = await fetch("/api/sync", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -94,7 +208,7 @@ export function StateProvider({ children }) {
     setUsers(allData.users || []);
     setVendors(allData.vendors || []);
 
-    const newUser = (allData.users || []).find((u) => u.email.toLowerCase() === userData.email.trim().toLowerCase());
+    const newUser = (allData.users || []).find((u: User) => u.email.toLowerCase() === userData.email.trim().toLowerCase());
     if (newUser) {
       setCurrentUser(newUser);
       saveState("vb_currentUser", newUser);
@@ -112,7 +226,7 @@ export function StateProvider({ children }) {
     }
   };
 
-  const addLog = async (role, message, type = "info") => {
+  const addLog = async (role: string, message: string, type: string = "info") => {
     try {
       await fetch("/api/sync", {
         method: "POST",
@@ -127,7 +241,7 @@ export function StateProvider({ children }) {
   };
 
   // 1. Admin Actions
-  const createUser = async (userData) => {
+  const createUser = async (userData: any) => {
     try {
       const res = await fetch("/api/sync", {
         method: "POST",
@@ -142,7 +256,7 @@ export function StateProvider({ children }) {
     }
   };
 
-  const deleteUser = async (userId) => {
+  const deleteUser = async (userId: string) => {
     try {
       const res = await fetch("/api/sync", {
         method: "POST",
@@ -157,7 +271,7 @@ export function StateProvider({ children }) {
     }
   };
 
-  const toggleVendorStatus = async (vendorId) => {
+  const toggleVendorStatus = async (vendorId: string) => {
     try {
       const res = await fetch("/api/sync", {
         method: "POST",
@@ -172,7 +286,7 @@ export function StateProvider({ children }) {
     }
   };
 
-  const addVendor = async (vendorData) => {
+  const addVendor = async (vendorData: any) => {
     try {
       const res = await fetch("/api/sync", {
         method: "POST",
@@ -188,7 +302,7 @@ export function StateProvider({ children }) {
   };
 
   // 2. Procurement Officer Actions
-  const createRFQ = async (rfqData) => {
+  const createRFQ = async (rfqData: any) => {
     try {
       const res = await fetch("/api/sync", {
         method: "POST",
@@ -203,7 +317,7 @@ export function StateProvider({ children }) {
     }
   };
 
-  const selectBestQuotation = async (rfqId, quoteId) => {
+  const selectBestQuotation = async (rfqId: string, quoteId: string) => {
     try {
       const res = await fetch("/api/sync", {
         method: "POST",
@@ -218,7 +332,7 @@ export function StateProvider({ children }) {
     }
   };
 
-  const generatePOAndInvoice = async (rfqId, quoteId) => {
+  const generatePOAndInvoice = async (rfqId: string, quoteId: string) => {
     try {
       const res = await fetch("/api/sync", {
         method: "POST",
@@ -234,7 +348,7 @@ export function StateProvider({ children }) {
   };
 
   // 3. Vendor Actions
-  const submitQuotation = async (quoteData) => {
+  const submitQuotation = async (quoteData: any) => {
     try {
       const res = await fetch("/api/sync", {
         method: "POST",
@@ -249,7 +363,7 @@ export function StateProvider({ children }) {
     }
   };
 
-  const updateInvoiceStatus = async (invoiceId, status) => {
+  const updateInvoiceStatus = async (invoiceId: string, status: string) => {
     try {
       const res = await fetch("/api/sync", {
         method: "POST",
@@ -265,7 +379,7 @@ export function StateProvider({ children }) {
   };
 
   // 4. Manager Actions
-  const approveOrRejectRFQ = async (rfqId, approvalStatus, remarks) => {
+  const approveOrRejectRFQ = async (rfqId: string, approvalStatus: string, remarks: string) => {
     try {
       const res = await fetch("/api/sync", {
         method: "POST",
@@ -310,7 +424,7 @@ export function StateProvider({ children }) {
     }
   };
 
-  const handleSetActiveView = (view) => {
+  const handleSetActiveView = (view: string) => {
     setActiveView(view);
     saveState("vb_activeView", view);
   };

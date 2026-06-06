@@ -219,7 +219,7 @@ function SubmitQuotationPageContent() {
       toast.success(isDraft ? "Quotation saved as draft" : "Quotation submitted successfully", {
         description: `Bid sent to procurement desk for "${selectedRfq?.title}".`,
       });
-      router.push("/quotations");
+      router.push("/dashboard/quotations");
     } catch (err) {
       toast.error("Failed to submit quotation");
     } finally {

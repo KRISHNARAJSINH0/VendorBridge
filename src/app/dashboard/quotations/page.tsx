@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Plus, ReceiptText, ShieldCheck, Landmark, CalendarRange, ArrowRight, Search, Sparkles } from "lucide-react";
-import { getQuotationsAction, updateQuotationAction } from "@/lib/actions/quotation";
+import { getQuotationsAction, updateQuotationAction, selectQuotationAction } from "@/lib/actions/quotation";
 import { getRFQsAction } from "@/lib/actions/rfq";
 import { getVendorsAction } from "@/lib/actions/vendor";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Quotation, RFQ, Vendor } from "@/lib/db";
+import { toast } from "sonner";
 import QuotationComparison from "@/components/quotations/quotation-comparison";
 
 export default function QuotationListPage() {
@@ -42,6 +43,8 @@ export default function QuotationListPage() {
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(loadData, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -73,7 +76,11 @@ export default function QuotationListPage() {
         quotations={quotations}
         vendors={vendors}
         onSelectVendor={async (quotationId) => {
-          await updateQuotationAction(quotationId, { status: "Approved" });
+          const qObj = quotations.find(q => q.id === quotationId);
+          if (qObj) {
+            await selectQuotationAction(quotationId, qObj.rfqId);
+            toast.success("Vendor selected. Bid routed to Manager for approval!");
+          }
           await loadData();
         }}
       />
@@ -107,11 +114,11 @@ export default function QuotationListPage() {
         <div className="mt-4 sm:mt-0 flex items-center gap-3">
           <Button
             onClick={() => setShowComparison(true)}
-            className="bg-zinc-900 border border-brand-green/30 text-brand-green font-semibold hover:bg-brand-green-muted/10 h-10 px-4 cursor-pointer"
+            className="bg-zinc-950 border border-brand-green/30 text-brand-green font-semibold hover:bg-brand-green-muted/10 h-10 px-4 cursor-pointer"
           >
             <Sparkles className="mr-2 h-4 w-4" /> Compare Quotations
           </Button>
-          <Link href="/quotations/submit">
+          <Link href="/dashboard/quotations/submit">
             <Button className="bg-brand-green text-zinc-950 font-semibold hover:bg-brand-green-hover hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer shadow-lg green-glow-button h-10 px-4">
               <Plus className="mr-2 h-4 w-4" /> Submit Quotation
             </Button>
@@ -148,7 +155,7 @@ export default function QuotationListPage() {
           <p className="text-xs text-muted-foreground max-w-xs mt-1 mb-6">
             Review incoming RFQs and submit quotation pricing forms to begin.
           </p>
-          <Link href="/quotations/submit">
+          <Link href="/dashboard/quotations/submit">
             <Button className="bg-brand-green text-zinc-950 hover:bg-brand-green-hover text-xs font-semibold cursor-pointer">
               Submit Price Quote
             </Button>
