@@ -4,34 +4,19 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Plus, FileText, Calendar, Wallet, Layers, ArrowRight, Search } from "lucide-react";
-import { getRFQsAction } from "@/lib/actions/rfq";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RFQ } from "@/lib/db";
+import { RFQ } from "@/lib/types";
+import { useAppState } from "@/context/StateContext";
 
 export default function RFQListPage() {
   const pathname = usePathname();
-  const [rfqs, setRfqs] = useState<RFQ[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { rfqs } = useAppState();
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    const loadRFQs = async () => {
-      try {
-        const data = await getRFQsAction();
-        setRfqs(data);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadRFQs();
-    const interval = setInterval(loadRFQs, 3000);
-    return () => clearInterval(interval);
-  }, []);
+  const loading = false;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -54,7 +39,7 @@ export default function RFQListPage() {
     }
   };
 
-  const filteredRfqs = rfqs.filter((rfq) => {
+  const filteredRfqs = rfqs.filter((rfq: RFQ) => {
     const query = searchQuery.toLowerCase().trim();
     return (
       query === "" ||
@@ -77,7 +62,7 @@ export default function RFQListPage() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <Link href="/dashboard/rfqs/create">
+          <Link href="/rfqs/create">
             <Button className="bg-brand-green text-zinc-950 font-semibold hover:bg-brand-green-hover hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer shadow-lg green-glow-button h-10 px-4">
               <Plus className="mr-2 h-4 w-4" /> Create RFQ
             </Button>
@@ -114,7 +99,7 @@ export default function RFQListPage() {
           <p className="text-xs text-muted-foreground max-w-xs mt-1 mb-6">
             Get started by launching your first RFQ bidding event for supplier partners.
           </p>
-          <Link href="/dashboard/rfqs/create">
+          <Link href="/rfqs/create">
             <Button className="bg-brand-green text-zinc-950 hover:bg-brand-green-hover text-xs font-semibold cursor-pointer">
               Launch Wizard
             </Button>
@@ -132,7 +117,7 @@ export default function RFQListPage() {
         </Card>
       ) : (
         <div className="grid gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          {filteredRfqs.map((rfq) => (
+          {filteredRfqs.map((rfq: RFQ) => (
             <Card key={rfq.id} className="bg-card/10 border-border/40 overflow-hidden hover:border-brand-green-border/30 transition-all duration-300 group hover:shadow-[0_0_15px_rgba(74,222,128,0.02)]">
               <CardContent className="p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -164,7 +149,7 @@ export default function RFQListPage() {
                       <span>{rfq.items.length} Line Items</span>
                     </div>
                     {rfq.status === "Published" && (
-                      <Link href={`/dashboard/quotations/submit?rfqId=${rfq.id}`} className="inline-flex items-center gap-1 bg-brand-green-muted/20 text-brand-green border border-brand-green-border/30 hover:bg-brand-green/10 px-3 py-1.5 rounded-lg text-xs font-semibold select-none">
+                      <Link href={`/quotations/submit?rfqId=${rfq.id}`} className="inline-flex items-center gap-1 bg-brand-green-muted/20 text-brand-green border border-brand-green-border/30 hover:bg-brand-green/10 px-3 py-1.5 rounded-lg text-xs font-semibold select-none">
                         Bid <ArrowRight className="h-3 w-3" />
                       </Link>
                     )}

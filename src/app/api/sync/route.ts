@@ -357,9 +357,14 @@ export async function GET() {
       name: v.companyName,
       email: v.contactEmail || "",
       category: v.category || "IT Hardware",
-      status: v.status === VendorStatus.ACTIVE ? "Active" : "Suspended",
+      status: (v.status === VendorStatus.ACTIVE ? "Active" : "Suspended") as "Active" | "Suspended",
       rating: Number(v.rating || 5.0),
-      dateAdded: v.createdAt.toISOString().split("T")[0]
+      dateAdded: v.createdAt.toISOString().split("T")[0],
+      gstNumber: v.gstNumber || "",
+      contactEmail: v.contactEmail || "",
+      contactPhone: v.contactPhone || "",
+      address: v.address || "",
+      riskScore: (v.riskScore || "Low") as "Low" | "Medium" | "High",
     }));
 
     // Fetch RFQs
@@ -382,7 +387,7 @@ export async function GET() {
 
     const quotations = quotationsRaw.map((q) => {
       const rfqMatch = rfqsRaw.find((r) => r.id === q.rfqId);
-      let displayStatus = "Submitted";
+      let displayStatus: "Submitted" | "Selected" | "Rejected" | "Approved" | "Draft" = "Submitted";
       if (q.status === QuotationStatus.UNDER_REVIEW) displayStatus = "Selected";
       else if (q.status === QuotationStatus.APPROVED) displayStatus = "Approved";
       else if (q.status === QuotationStatus.REJECTED) displayStatus = "Rejected";
@@ -390,9 +395,11 @@ export async function GET() {
       return {
         id: q.quotationNumber,
         rfqId: rfqMatch ? rfqMatch.rfqNumber : "Unknown",
+        rfqTitle: rfqMatch ? rfqMatch.title : "Unknown",
         vendorId: "v" + q.vendorId,
         vendorName: q.vendor.companyName,
         totalPrice: Number(q.grandTotal || 0),
+        grandTotal: Number(q.grandTotal || 0),
         deliveryDays: q.items[0]?.deliveryDays || 30, // Fallback to item delivery
         remarks: q.notes || "",
         status: displayStatus,
@@ -400,7 +407,10 @@ export async function GET() {
         items: q.items.map((it) => ({
           name: it.itemName || "",
           price: Number(it.unitPrice || 0)
-        }))
+        })),
+        paymentTerms: q.paymentTerms || "",
+        warranty: q.warranty || "",
+        gstPercent: Number(q.gstPercent || 0)
       };
     });
 
@@ -467,11 +477,11 @@ export async function GET() {
       // Find selected quotation ID if any
       const selectedQuote = quotationsRaw.find((q) => q.rfqId === r.id && (q.status === QuotationStatus.UNDER_REVIEW || q.status === QuotationStatus.APPROVED));
       
-      let displayStatus = "Active";
+      let displayStatus: "Active" | "Under Review" | "Approved" | "Rejected" | "Closed" | "Draft" | "Published" = "Active";
       if (r.status === RFQStatus.CLOSED) {
         displayStatus = "Closed";
       } else if (r.status === RFQStatus.CANCELLED) {
-        displayStatus = "Cancelled";
+        displayStatus = "Rejected";
       } else if (selectedQuote) {
         if (selectedQuote.status === QuotationStatus.UNDER_REVIEW) {
           displayStatus = "Under Review";
@@ -487,6 +497,7 @@ export async function GET() {
         category: r.items[0]?.itemName ? "IT Hardware" : "Furniture", // Mapped category
         deadline: r.deadline ? r.deadline.toISOString().split("T")[0] : "",
         status: displayStatus,
+        budget: Number(r.budget || 0),
         items: r.items.map((it) => ({
           name: it.itemName,
           qty: Number(it.quantity),

@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createVendorAction } from "@/lib/actions/vendor";
+import { useAppState } from "@/context/StateContext";
 
 const vendorSchema = zod.object({
   name: zod.string().min(2, "Vendor name must be at least 2 characters"),
@@ -51,6 +51,7 @@ interface AddVendorDialogProps {
 export function AddVendorDialog({ onSuccess }: AddVendorDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { addVendor } = useAppState();
 
   const {
     register,
@@ -74,7 +75,15 @@ export function AddVendorDialog({ onSuccess }: AddVendorDialogProps) {
   const onSubmit = async (values: VendorFormValues) => {
     setLoading(true);
     try {
-      await createVendorAction(values);
+      await addVendor({
+        name: values.name,
+        email: values.contactEmail,
+        category: values.category,
+        gstNumber: values.gstNumber,
+        phone: values.contactPhone,
+        address: values.address,
+        status: values.status
+      });
       toast.success("Vendor added successfully", {
         description: `${values.name} has been registered as a procurement partner.`,
       });

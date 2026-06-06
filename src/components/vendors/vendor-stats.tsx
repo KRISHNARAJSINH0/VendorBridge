@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Users, CheckCircle, Clock, AlertTriangle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Vendor } from "@/lib/db";
+import { Vendor } from "@/lib/types";
 
 interface VendorStatsProps {
   vendors: Vendor[];

@@ -50,8 +50,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Vendor } from "@/lib/db";
-import { deleteVendorAction, updateVendorAction } from "@/lib/actions/vendor";
+import { Vendor } from "@/lib/types";
+import { useAppState } from "@/context/StateContext";
 
 interface VendorTableProps {
   vendors: Vendor[];
@@ -59,6 +59,7 @@ interface VendorTableProps {
 }
 
 export function VendorTable({ vendors, loading }: VendorTableProps) {
+  const { updateVendor, deleteVendor } = useAppState();
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   
@@ -136,7 +137,7 @@ export function VendorTable({ vendors, loading }: VendorTableProps) {
     if (!editVendor) return;
     setIsUpdating(true);
     try {
-      await updateVendorAction(editVendor.id, editVendor);
+      await updateVendor(editVendor.id, editVendor);
       toast.success("Vendor updated successfully");
       setEditDialogOpen(false);
     } catch (error) {
@@ -150,7 +151,7 @@ export function VendorTable({ vendors, loading }: VendorTableProps) {
     if (!deleteVendorId) return;
     setIsDeleting(true);
     try {
-      await deleteVendorAction(deleteVendorId);
+      await deleteVendor(deleteVendorId);
       toast.success("Vendor deleted successfully");
       setDeleteDialogOpen(false);
     } catch (error) {
@@ -353,7 +354,7 @@ export function VendorTable({ vendors, loading }: VendorTableProps) {
                   <Input
                     id="edit-name"
                     value={editVendor.name}
-                    onChange={(e) => setEditVendor({ ...editVendor, name: e.target.value })}
+                    onChange={(e) => setEditVendor(prev => prev ? { ...prev, name: e.target.value } : null)}
                     className="bg-secondary/40 border-border/60 text-xs h-9 focus:border-brand-green-border"
                     required
                   />
@@ -364,7 +365,7 @@ export function VendorTable({ vendors, loading }: VendorTableProps) {
                   <Input
                     id="edit-category"
                     value={editVendor.category}
-                    onChange={(e) => setEditVendor({ ...editVendor, category: e.target.value })}
+                    onChange={(e) => setEditVendor(prev => prev ? { ...prev, category: e.target.value } : null)}
                     className="bg-secondary/40 border-border/60 text-xs h-9 focus:border-brand-green-border"
                     required
                   />
@@ -375,7 +376,7 @@ export function VendorTable({ vendors, loading }: VendorTableProps) {
                   <Input
                     id="edit-gst"
                     value={editVendor.gstNumber}
-                    onChange={(e) => setEditVendor({ ...editVendor, gstNumber: e.target.value.toUpperCase() })}
+                    onChange={(e) => setEditVendor(prev => prev ? { ...prev, gstNumber: e.target.value.toUpperCase() } : null)}
                     className="bg-secondary/40 border-border/60 uppercase text-xs h-9 focus:border-brand-green-border"
                     maxLength={15}
                     required
@@ -386,7 +387,7 @@ export function VendorTable({ vendors, loading }: VendorTableProps) {
                   <Label className="text-xs font-semibold">Status</Label>
                   <Select
                     value={editVendor.status}
-                    onValueChange={(val: any) => setEditVendor({ ...editVendor, status: val })}
+                    onValueChange={(val: any) => setEditVendor(prev => prev ? { ...prev, status: val } : null)}
                   >
                     <SelectTrigger className="bg-secondary/40 border-border/60 text-xs h-9 focus:border-brand-green-border">
                       <SelectValue placeholder="Select status" />
@@ -405,7 +406,7 @@ export function VendorTable({ vendors, loading }: VendorTableProps) {
                     id="edit-email"
                     type="email"
                     value={editVendor.contactEmail}
-                    onChange={(e) => setEditVendor({ ...editVendor, contactEmail: e.target.value })}
+                    onChange={(e) => setEditVendor(prev => prev ? { ...prev, contactEmail: e.target.value } : null)}
                     className="bg-secondary/40 border-border/60 text-xs h-9 focus:border-brand-green-border"
                     required
                   />
@@ -416,7 +417,7 @@ export function VendorTable({ vendors, loading }: VendorTableProps) {
                   <Input
                     id="edit-phone"
                     value={editVendor.contactPhone}
-                    onChange={(e) => setEditVendor({ ...editVendor, contactPhone: e.target.value })}
+                    onChange={(e) => setEditVendor(prev => prev ? { ...prev, contactPhone: e.target.value } : null)}
                     className="bg-secondary/40 border-border/60 text-xs h-9 focus:border-brand-green-border"
                     required
                   />
@@ -426,7 +427,7 @@ export function VendorTable({ vendors, loading }: VendorTableProps) {
                   <Label className="text-xs font-semibold">Risk Rating</Label>
                   <Select
                     value={editVendor.riskScore}
-                    onValueChange={(val: any) => setEditVendor({ ...editVendor, riskScore: val })}
+                    onValueChange={(val: any) => setEditVendor(prev => prev ? { ...prev, riskScore: val } : null)}
                   >
                     <SelectTrigger className="bg-secondary/40 border-border/60 text-xs h-9 focus:border-brand-green-border">
                       <SelectValue placeholder="Select risk level" />
@@ -444,7 +445,7 @@ export function VendorTable({ vendors, loading }: VendorTableProps) {
                   <Textarea
                     id="edit-address"
                     value={editVendor.address || ""}
-                    onChange={(e) => setEditVendor({ ...editVendor, address: e.target.value })}
+                    onChange={(e) => setEditVendor(prev => prev ? { ...prev, address: e.target.value } : null)}
                     className="bg-secondary/40 border-border/60 text-xs min-h-[60px] focus:border-brand-green-border"
                   />
                 </div>

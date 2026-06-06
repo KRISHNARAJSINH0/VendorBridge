@@ -12,7 +12,7 @@ import {
   Percent,
   CheckSquare
 } from "lucide-react";
-import { Quotation, RFQ, Vendor } from "@/lib/db";
+import { Quotation, RFQ, Vendor } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,7 +62,7 @@ export default function QuotationComparison({
     // Resolve vendor records
     const mapped = rfqQuotations.map((quote) => {
       const vendor = vendors.find((v) => v.id === quote.vendorId);
-      const deliveryDays = Math.max(...quote.items.map((i) => i.deliveryDays), 7);
+      const deliveryDays = quote.deliveryDays || 7;
       return {
         quote,
         vendor,
@@ -646,7 +646,7 @@ export default function QuotationComparison({
               <div className="flex justify-between items-center pb-2 border-b border-border/20">
                 <span className="text-muted-foreground">Expected Delivery</span>
                 <span className="font-bold text-foreground">
-                  {Math.max(...selectedQuoteForModal.items.map((i) => i.deliveryDays), 7)} Days
+                  {selectedQuoteForModal.deliveryDays || 7} Days
                 </span>
               </div>
               <div className="flex justify-between items-center">

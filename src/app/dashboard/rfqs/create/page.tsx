@@ -35,10 +35,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getVendorsAction } from "@/lib/actions/vendor";
-import { createRFQAction } from "@/lib/actions/rfq";
-import { Vendor } from "@/lib/db";
-import { useAuth } from "@/context/auth-context";
+import { Vendor } from "@/lib/types";
+import { useAppState } from "@/context/StateContext";
 
 // Stepper configuration
 const STEPS = [
@@ -88,29 +86,13 @@ type RFQFormValues = zod.infer<typeof rfqSchema>;
 
 export default function CreateRFQPage() {
   const router = useRouter();
-  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [loadingVendors, setLoadingVendors] = useState(true);
+  const { vendors, createRFQ } = useAppState();
+  const loadingVendors = false;
   
   // Attachments state
   const [attachments, setAttachments] = useState<any[]>([]);
   const [dragActive, setDragActive] = useState(false);
-
-  // Load vendors for assignment step
-  useEffect(() => {
-    const loadVendors = async () => {
-      try {
-        const data = await getVendorsAction();
-        setVendors(data);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoadingVendors(false);
-      }
-    };
-    loadVendors();
-  }, []);
 
   const {
     register,
@@ -199,24 +181,25 @@ export default function CreateRFQPage() {
 
   const onFormSubmit = async (values: RFQFormValues, publish = true) => {
     const rfqData = {
-      ...values,
-      createdById: user?.id || "unknown",
-      status: publish ? "Published" as const : "Draft" as const,
-      attachments: attachments.map((a) => ({
-        id: a.id,
-        fileName: a.fileName,
-        fileUrl: a.fileUrl,
-        fileSize: a.fileSize,
-        createdAt: new Date().toISOString(),
+      title: values.title,
+      description: values.description,
+      category: values.category,
+      budget: Number(values.budget),
+      deadline: values.deadline,
+      items: values.items.map((it) => ({
+        name: it.itemName,
+        qty: Number(it.quantity),
+        unit: it.unit || "pcs"
       })),
+      assignedVendors: values.vendorIds
     };
 
     try {
-      await createRFQAction(rfqData);
+      await createRFQ(rfqData);
       toast.success(publish ? "RFQ Published successfully" : "RFQ Draft saved", {
         description: `Tender event "${values.title}" created.`,
       });
-      router.push("/dashboard/rfqs");
+      router.push("/rfqs");
     } catch (e) {
       toast.error("Failed to create RFQ");
     }
@@ -478,7 +461,7 @@ export default function CreateRFQPage() {
                       <p className="text-xs text-muted-foreground animate-pulse">Loading vendor directory...</p>
                     ) : (
                       <div className="grid gap-3.5 sm:grid-cols-2">
-                        {vendors.map((vendor) => {
+                        {vendors.map((vendor: Vendor) => {
                           const isChecked = selectedVendorIds.includes(vendor.id);
                           return (
                             <button
@@ -536,7 +519,7 @@ export default function CreateRFQPage() {
                         <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Assigned Partners</Label>
                         <div className="flex flex-wrap gap-2">
                           {selectedVendorIds.map((vid) => {
-                            const name = vendors.find((v) => v.id === vid)?.name || vid;
+                            const name = vendors.find((v: Vendor) => v.id === vid)?.name || vid;
                             return (
                               <Badge
                                 key={vid}

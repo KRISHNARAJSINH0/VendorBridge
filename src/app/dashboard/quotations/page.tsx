@@ -4,47 +4,25 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Plus, ReceiptText, ShieldCheck, Landmark, CalendarRange, ArrowRight, Search, Sparkles } from "lucide-react";
-import { getQuotationsAction, updateQuotationAction, selectQuotationAction } from "@/lib/actions/quotation";
-import { getRFQsAction } from "@/lib/actions/rfq";
-import { getVendorsAction } from "@/lib/actions/vendor";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Quotation, RFQ, Vendor } from "@/lib/db";
-import { toast } from "sonner";
+import { Quotation, RFQ, Vendor } from "@/lib/types";
 import QuotationComparison from "@/components/quotations/quotation-comparison";
+import { useAppState } from "@/context/StateContext";
 
 export default function QuotationListPage() {
   const pathname = usePathname();
-  const [quotations, setQuotations] = useState<Quotation[]>([]);
-  const [rfqs, setRfqs] = useState<RFQ[]>([]);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { selectBestQuotation, quotations, rfqs, vendors } = useAppState();
   const [searchQuery, setSearchQuery] = useState("");
   const [showComparison, setShowComparison] = useState(false);
 
-  const loadData = async () => {
-    try {
-      const [quotesData, rfqsData, vendorsData] = await Promise.all([
-        getQuotationsAction(),
-        getRFQsAction(),
-        getVendorsAction()
-      ]);
-      setQuotations(quotesData);
-      setRfqs(rfqsData);
-      setVendors(vendorsData);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = false;
 
   useEffect(() => {
-    loadData();
-    const interval = setInterval(loadData, 3000);
-    return () => clearInterval(interval);
+    // Left empty for dependency compatibility
   }, []);
 
   useEffect(() => {
@@ -79,26 +57,30 @@ export default function QuotationListPage() {
         quotations={quotations}
         vendors={vendors}
         onSelectVendor={async (quotationId) => {
-          const qObj = quotations.find(q => q.id === quotationId);
-          if (qObj) {
-            await selectQuotationAction(quotationId, qObj.rfqId);
-            toast.success("Vendor selected. Bid routed to Manager for approval!");
+          const quote = quotations.find((q: Quotation) => q.id === quotationId);
+          if (!quote) return;
+
+          try {
+            await selectBestQuotation(quote.rfqId, quote.id);
+            toast.success("Quotation selected successfully", {
+              description: `Quotation ${quote.id} from ${quote.vendorName} submitted for Manager approval.`,
+            });
+            setShowComparison(false);
+          } catch (e) {
+            toast.error("Failed to select quotation");
           }
-          await loadData();
         }}
       />
     );
   }
 
-  const filteredQuotations = quotations.filter((quote) => {
+  const filteredQuotations = quotations.filter((quote: Quotation) => {
     const query = searchQuery.toLowerCase().trim();
     return (
       query === "" ||
       quote.vendorName.toLowerCase().includes(query) ||
       quote.rfqTitle.toLowerCase().includes(query) ||
-      (quote.notes && quote.notes.toLowerCase().includes(query)) ||
-      (quote.paymentTerms && quote.paymentTerms.toLowerCase().includes(query)) ||
-      (quote.warranty && quote.warranty.toLowerCase().includes(query))
+      (quote.remarks && quote.remarks.toLowerCase().includes(query))
     );
   });
 
@@ -117,11 +99,11 @@ export default function QuotationListPage() {
         <div className="mt-4 sm:mt-0 flex items-center gap-3">
           <Button
             onClick={() => setShowComparison(true)}
-            className="bg-zinc-950 border border-brand-green/30 text-brand-green font-semibold hover:bg-brand-green-muted/10 h-10 px-4 cursor-pointer"
+            className="bg-zinc-900 border border-brand-green/30 text-brand-green font-semibold hover:bg-brand-green-muted/10 h-10 px-4 cursor-pointer"
           >
             <Sparkles className="mr-2 h-4 w-4" /> Compare Quotations
           </Button>
-          <Link href="/dashboard/quotations/submit">
+          <Link href="/quotations/submit">
             <Button className="bg-brand-green text-zinc-950 font-semibold hover:bg-brand-green-hover hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer shadow-lg green-glow-button h-10 px-4">
               <Plus className="mr-2 h-4 w-4" /> Submit Quotation
             </Button>
@@ -158,7 +140,7 @@ export default function QuotationListPage() {
           <p className="text-xs text-muted-foreground max-w-xs mt-1 mb-6">
             Review incoming RFQs and submit quotation pricing forms to begin.
           </p>
-          <Link href="/dashboard/quotations/submit">
+          <Link href="/quotations/submit">
             <Button className="bg-brand-green text-zinc-950 hover:bg-brand-green-hover text-xs font-semibold cursor-pointer">
               Submit Price Quote
             </Button>
@@ -176,7 +158,7 @@ export default function QuotationListPage() {
         </Card>
       ) : (
         <div className="grid gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          {filteredQuotations.map((quote) => (
+          {filteredQuotations.map((quote: Quotation) => (
             <Card key={quote.id} className="bg-card/10 border-border/40 overflow-hidden hover:border-brand-green-border/30 transition-all duration-300 group hover:shadow-[0_0_15px_rgba(74,222,128,0.02)]">
               <CardContent className="p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -192,9 +174,9 @@ export default function QuotationListPage() {
                     <p className="text-xs text-muted-foreground">
                       RFQ Reference: <span className="text-foreground font-semibold">{quote.rfqTitle}</span>
                     </p>
-                    {quote.notes && (
+                    {quote.remarks && (
                       <p className="text-[11px] text-muted-foreground italic line-clamp-1 mt-1">
-                        &quot;{quote.notes}&quot;
+                        &quot;{quote.remarks}&quot;
                       </p>
                     )}
                   </div>

@@ -1,89 +1,16 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  status: string;
-  vendorId: string | null;
-}
+import {
+  User,
+  Vendor,
+  RFQ,
+  Quotation,
+  PurchaseOrder,
+  Invoice,
+  ActivityLog,
+} from "@/lib/types";
 
-export interface Vendor {
-  id: string;
-  name: string;
-  email: string;
-  category: string;
-  status: string;
-  rating: number;
-  dateAdded: string;
-}
-
-export interface RFQItem {
-  name: string;
-  qty: number;
-  unit: string;
-  targetPrice: number;
-}
-
-export interface RFQ {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  deadline: string;
-  status: string;
-  items: RFQItem[];
-  assignedVendors: string[];
-  selectedQuotationId: string | null;
-  managerRemarks: string;
-}
-
-export interface QuotationItem {
-  name: string;
-  price: number;
-}
-
-export interface Quotation {
-  id: string;
-  rfqId: string;
-  vendorId: string;
-  vendorName: string;
-  totalPrice: number;
-  deliveryDays: number;
-  remarks: string;
-  status: string;
-  submittedDate: string;
-  items: QuotationItem[];
-}
-
-export interface PurchaseOrder {
-  id: string;
-  rfqId: string;
-  vendorId: string;
-  vendorName: string;
-  total: number;
-  createdDate: string;
-  status: string;
-}
-
-export interface Invoice {
-  id: string;
-  poId: string;
-  vendorId: string;
-  vendorName: string;
-  total: number;
-  createdDate: string;
-  status: string;
-}
-
-export interface ActivityLog {
-  timestamp: string;
-  role: string;
-  message: string;
-  type: string;
-}
 
 interface StateContextType {
   currentUser: User | null;
@@ -104,6 +31,8 @@ interface StateContextType {
   deleteUser: (userId: string) => Promise<void>;
   toggleVendorStatus: (vendorId: string) => Promise<void>;
   addVendor: (vendorData: any) => Promise<void>;
+  deleteVendor: (vendorId: string) => Promise<void>;
+  updateVendor: (vendorId: string, vendorData: any) => Promise<void>;
   createRFQ: (rfqData: any) => Promise<void>;
   selectBestQuotation: (rfqId: string, quoteId: string) => Promise<void>;
   approveOrRejectRFQ: (rfqId: string, approvalStatus: string, remarks: string) => Promise<void>;
@@ -301,6 +230,37 @@ export function StateProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteVendor = async (vendorId: string) => {
+    try {
+      const res = await fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "deleteVendor", data: { id: vendorId } })
+      });
+      const resData = await res.json();
+      if (resData.error) throw new Error(resData.error);
+      await fetchAllData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const updateVendor = async (vendorId: string, vendorData: any) => {
+    try {
+      const res = await fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "updateVendor", data: { id: vendorId, ...vendorData } })
+      });
+      const resData = await res.json();
+      if (resData.error) throw new Error(resData.error);
+      await fetchAllData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
   // 2. Procurement Officer Actions
   const createRFQ = async (rfqData: any) => {
     try {
@@ -450,6 +410,8 @@ export function StateProvider({ children }: { children: ReactNode }) {
         deleteUser,
         toggleVendorStatus,
         addVendor,
+        deleteVendor,
+        updateVendor,
         createRFQ,
         selectBestQuotation,
         approveOrRejectRFQ,

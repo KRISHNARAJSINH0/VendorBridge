@@ -1,474 +1,423 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { loginAction } from "@/lib/actions/auth";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Building2,
+  FileText,
+  BarChart3,
+  ShieldCheck,
+  PackageCheck,
+  Sparkles,
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  ArrowRight,
+  CheckCircle2,
+  Loader2,
+  ChevronRight,
+  Zap,
+  TrendingUp,
+  Users
+} from "lucide-react";
 import { useAuth } from "@/context/auth-context";
+import { loginAction } from "@/lib/actions/auth";
 
-export default function Home() {
+// ─── Feature list shown on the left branding panel ───
+const FEATURES = [
+  { icon: Building2, label: "Vendor Management" },
+  { icon: FileText, label: "RFQ Management" },
+  { icon: Sparkles, label: "AI Quotation Analysis" },
+  { icon: ShieldCheck, label: "Approval Workflow" },
+  { icon: PackageCheck, label: "Purchase Orders" },
+  { icon: BarChart3, label: "Reports & Analytics" },
+];
+
+
+
+// ─── Floating metric cards on the branding panel ───
+const METRIC_CARDS = [
+  { label: "Active Vendors", value: "128", icon: Users, color: "from-blue-500/20 to-blue-600/5" },
+  { label: "RFQs Processed", value: "2,847", icon: FileText, color: "from-emerald-500/20 to-emerald-600/5" },
+  { label: "AI Accuracy", value: "94%", icon: Sparkles, color: "from-purple-500/20 to-purple-600/5" },
+  { label: "Cost Savings", value: "₹18.5L", icon: TrendingUp, color: "from-amber-500/20 to-amber-600/5" },
+];
+
+export default function LoginPage() {
   const router = useRouter();
-  const { setUser } = useAuth();
-  
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [systemTime, setSystemTime] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  
-  // Realtime system terminal logger
-  const [terminalLogs, setTerminalLogs] = useState<string[]>([
-    "SYS.LOG // VBRIDGE BOOT INITIALIZED...",
-    "SECURE CONTEXT ROOTED ON NODE-829A",
-    "DB CLIENT LOADED: PRISMA-SQLITE-V7",
-    "STATUS: AWAITING CREDENTIAL SCAN..."
-  ]);
-  const [loginStatus, setLoginStatus] = useState("READY"); // READY, CONNECTING, AUTHORIZING, GRANTED, ERROR
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Update clock at top right
+  const { setUser } = useAuth();
+
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setSystemTime(now.toISOString().replace("T", " // ").slice(0, -5));
-    };
-    updateTime();
-    const timer = window.setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
+    setMounted(true);
   }, []);
 
-  // Simulating ongoing cyber logs
-  useEffect(() => {
-    if (isSubmitting || loginStatus === "GRANTED" || loginStatus === "ERROR") return;
-    
-    const logsPool = [
-      "DB QUERY: RETRIEVED COMPLIANCE RECORDS [OK]",
-      "IDS STATUS: 0 ANOMALIES ON PORT 443 // SHIELD UP",
-      "SYS TEMP: 41°C // CPU LOAD: 4.8%",
-      "LEDGER STATUS: AUTOMATED SYNC RUNNING",
-      "NETWORK STATUS: 12 ACTIVE ROUTED SESSIONS",
-      "PO SYSTEM: COMPILED PENDING BID REQUESTS",
-      "RFQ WATCHDOG: ACTIVE PORT SCAN COMPLETE",
-      "INTEGRATION NODE: DISPATCH COMPLETED [200 OK]"
-    ];
 
-    const logInterval = window.setInterval(() => {
-      const randomMsg = logsPool[Math.floor(Math.random() * logsPool.length)];
-      const now = new Date();
-      const timeStr = now.toTimeString().split(" ")[0];
-      setTerminalLogs(prev => [...prev.slice(-3), `[${timeStr}] ${randomMsg}`]);
-    }, 4500);
 
-    return () => clearInterval(logInterval);
-  }, [isSubmitting, loginStatus]);
-
-  const handleLoginSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !password) {
-      setLoginStatus("ERROR");
-      setTerminalLogs(prev => [
-        ...prev.slice(-2),
-        "ERR: ACCESS REJECTED. FIELDS MATRIX IS INCOMPLETE.",
-        "SYS.STATUS: INSUFFICIENT AUTHENTICATORS // SHIELD ENGAGED"
-      ]);
-      setTimeout(() => {
-        setLoginStatus("READY");
-      }, 3000);
+    setError("");
+
+    if (!email.trim()) {
+      setError("Email address is required");
+      return;
+    }
+    if (!password.trim()) {
+      setError("Password is required");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError("Please enter a valid email address");
       return;
     }
 
     setIsSubmitting(true);
-    setLoginStatus("CONNECTING");
-    setTerminalLogs(prev => [
-      ...prev.slice(-2),
-      "SYS.HANDSHAKE: INITIATING SECURE SOCKET WRAPPER...",
-      "SYS.QUERY: COMPILING ENCRYPTED SIGNATURE KEY..."
-    ]);
 
     try {
-      // Small simulated delay for realistic security handshake
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      setLoginStatus("AUTHORIZING");
-      setTerminalLogs(prev => [
-        ...prev.slice(-2),
-        `SYS.AUTH: VERIFYING MATCH MATRIX FOR UID: "${username}"`,
-        "SYS.CRYPTO: GENERATING SESSION DECRYPT KEY..."
-      ]);
-
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      const res = await loginAction(username, password);
+      const res = await loginAction(email.trim().toLowerCase(), password);
       if (!res.success || !res.user) {
-        setLoginStatus("ERROR");
-        setTerminalLogs(prev => [
-          ...prev.slice(-2),
-          `ERR: ${res.error || "ACCESS REJECTED. IDENTITY MATRIX INVALID."}`,
-          "SYS.STATUS: COMPLIANCE BREACH BLOCKED"
-        ]);
+        setError(res.error || "Invalid credentials. Please try again.");
         setIsSubmitting(false);
         return;
       }
 
-      setLoginStatus("GRANTED");
       setUser(res.user);
-      setTerminalLogs(prev => [
-        ...prev.slice(-2),
-        "SYS.STATUS: SYNC-ACCESS PROTOCOL CONFIRMED // GRANTED",
-        `WELCOME OPERATOR // CONSOLE SESSION REDIRECTED TO SYSTEM ROOT`
-      ]);
+      setSuccess(true);
 
-      const role = res.user.role;
+      // Role-based redirect — all roles go to /dashboard which renders role-specific views
       setTimeout(() => {
-        if (role === "Admin") {
-          router.push("/admin/dashboard");
-        } else if (role === "Procurement Officer") {
-          router.push("/procurement/dashboard");
-        } else if (role === "Manager") {
-          router.push("/manager/dashboard");
-        } else if (role === "Vendor") {
-          router.push("/vendor/dashboard");
-        } else {
-          router.push("/dashboard");
-        }
+        router.push("/dashboard");
       }, 800);
-
-    } catch (err) {
-      setLoginStatus("ERROR");
-      setTerminalLogs(prev => [
-        ...prev.slice(-2),
-        "ERR: EXCEPTION CAUGHT IN LOGIN THREAD.",
-        "SYS.STATUS: EMERGENCY ABORT SYSTEM ENGAGED"
-      ]);
+    } catch (err: any) {
+      setError(err.message || "Invalid credentials. Please try again.");
       setIsSubmitting(false);
     }
   };
 
-  const resetForm = () => {
-    setUsername("");
-    setPassword("");
-    setLoginStatus("READY");
-    setTerminalLogs([
-      "SYS.LOG // MATRIX RESET COMPLETED...",
-      "SECURE CONTEXT ROOTED ON NODE-829A",
-      "STATUS: AWAITING CREDENTIAL SCAN..."
-    ]);
-  };
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-[#060609] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-green" />
+      </div>
+    );
+  }
 
   return (
-    <div className="relative flex flex-col flex-1 min-h-screen bg-[#0A0A0A] overflow-hidden select-none font-mono">
-      
-      {/* 1. Terminal Floating Grid & Scanline Background */}
-      <div className="absolute inset-0 animate-grid opacity-35 z-0 pointer-events-none"></div>
-      <div className="absolute inset-0 animate-scanline z-10 pointer-events-none"></div>
-      
-      {/* Neon glowing radial gradient to create cyber depth */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-cyber-green/5 blur-[120px] pointer-events-none z-0"></div>
+    <div className="min-h-screen flex bg-[#060609] overflow-hidden relative">
 
-      {/* 2. Top Chrome Application Bar */}
-      <header className="relative w-full h-11 flex items-center justify-between px-4 border-b border-cyber-green/20 bg-black/80 backdrop-blur-sm z-20 text-xs">
-        <div className="flex items-center gap-3">
-          {/* Cyber Terminal Dots */}
-          <div className="flex gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-600/60 border border-red-600/30"></span>
-            <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60 border border-yellow-500/30"></span>
-            <span className="w-2.5 h-2.5 rounded-full bg-cyber-green/60 border border-cyber-green/30 animate-pulse"></span>
-          </div>
-          <span className="text-[#888] font-semibold tracking-wider uppercase font-mono">
-            SYS.LOC: <span className="text-cyber-green text-shadow-[0_0_8px_rgba(34,197,94,0.4)]">SECURE_NODE://VBRIDGE-GATEWAY-1</span>
-          </span>
-        </div>
-        
-        {/* Dynamic server clock / node stats */}
-        <div className="hidden md:flex items-center gap-6 text-[#666]">
-          <div>PROTOCOL: <span className="text-cyber-green/75">TLS_1.3</span></div>
-          <div>MEM.ALLOC: <span className="text-cyber-green/75">244MB/1024MB</span></div>
-          <div className="text-cyber-green/70">{systemTime}</div>
-        </div>
-      </header>
+      {/* ─── Ambient background effects ─── */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full bg-brand-green/[0.03] blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full bg-blue-500/[0.02] blur-[100px]" />
+        {/* Subtle grid pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundSize: "60px 60px",
+            backgroundImage:
+              "linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)",
+          }}
+        />
+      </div>
 
-      {/* 3. Main Center Workspace Area */}
-      <main className="flex-1 flex items-center justify-center p-4 relative z-20 animate-fade-in">
-        
-        {/* Main Authenticator Interface Container */}
-        <div className="w-full max-w-[480px] glass-cyber animate-border-pulse rounded-lg overflow-hidden shadow-2xl relative">
-          
-          {/* Top edge futuristic laser glow bar */}
-          <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-cyber-green to-transparent opacity-85 shadow-[0_0_10px_#22C55E]"></div>
-          
-          {/* Card Frame Inner Borders/Indicators */}
-          <span className="absolute top-2 left-2 text-[8px] text-cyber-green/40 font-mono">VB_SECURE_AUTH</span>
-          <span className="absolute top-2 right-2 text-[8px] text-cyber-green/40 font-mono">[0x000F8]</span>
-          
-          <div className="p-8 pt-10 flex flex-col items-center">
-            
-            {/* Cyberpunk SVG Logo / Avatar Area */}
-            <div className="relative w-20 h-20 mb-5 flex items-center justify-center rounded-xl bg-black/60 border border-cyber-green/30 shadow-[inset_0_0_12px_rgba(34,197,94,0.25)] group hover:border-cyber-green transition-colors duration-300">
-              {/* Corner brackets for technological camera aperture look */}
-              <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t border-l border-cyber-green"></div>
-              <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t border-r border-cyber-green"></div>
-              <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b border-l border-cyber-green"></div>
-              <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b border-r border-cyber-green"></div>
-              
-              {/* Spinning circular HUD element */}
-              <div className="absolute w-[80%] h-[80%] border border-dashed border-cyber-green/20 rounded-full animate-[spin_40s_linear_infinite]"></div>
-              
-              {/* Custom SVG Logo */}
-              <svg 
-                className="w-10 h-10 text-cyber-green drop-shadow-[0_0_8px_rgba(34,197,94,0.6)] group-hover:scale-110 transition-transform duration-300"
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor" 
-                strokeWidth={1.5}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* LEFT PANEL – Branding & Platform Showcase               */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      <div className="hidden lg:flex lg:w-[55%] xl:w-[58%] relative z-10 flex-col justify-between p-10 xl:p-14 overflow-hidden">
+
+        {/* Top gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-green/[0.04] via-transparent to-blue-500/[0.02] pointer-events-none" />
+
+        {/* ─── Logo & Tagline ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="relative z-10"
+        >
+          <div className="flex items-center gap-3 mb-8">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-green/10 border border-brand-green/30 shadow-[0_0_20px_rgba(74,222,128,0.1)]">
+              <div className="h-3 w-3 rounded-full bg-brand-green animate-pulse" />
             </div>
-
-            {/* Core Titles */}
-            <h1 className="text-3xl font-extrabold tracking-[0.2em] text-cyber-green uppercase glow-green mb-1 text-center font-mono">
+            <span className="text-2xl font-bold tracking-tight text-white">
               VendorBridge
-            </h1>
-            <p className="text-[10px] tracking-[0.15em] text-[#888] uppercase mb-8 text-center font-semibold">
-              Vendor Procurement Management Platform
-            </p>
+            </span>
+          </div>
+          <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight text-white leading-[1.1] mb-4">
+            AI-Powered
+            <br />
+            <span className="bg-gradient-to-r from-brand-green to-emerald-300 bg-clip-text text-transparent">
+              Vendor Management
+            </span>
+          </h1>
+          <p className="text-zinc-400 text-base max-w-md leading-relaxed">
+            Manage vendors, RFQs, quotations, approvals, purchase orders, invoices, reports, and procurement analytics from one unified platform.
+          </p>
+        </motion.div>
 
-            {/* Login Status Notification Message */}
-            {loginStatus !== "READY" && (
-              <div className={`w-full py-2.5 px-4 mb-6 border text-xs flex items-center justify-between rounded ${
-                loginStatus === "ERROR" 
-                  ? "bg-red-950/40 border-red-500/40 text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.1)]" 
-                  : loginStatus === "GRANTED"
-                  ? "bg-emerald-950/40 border-cyber-green/40 text-cyber-green shadow-[0_0_10px_rgba(34,197,94,0.1)]"
-                  : "bg-zinc-900/55 border-cyber-green/20 text-[#aaa]"
-              }`}>
-                <div className="flex items-center gap-2">
-                  <span className={`w-1.5 h-1.5 rounded-full ${
-                    loginStatus === "ERROR" ? "bg-red-500 animate-ping" : "bg-cyber-green animate-ping"
-                  }`}></span>
-                  <span className="font-mono">
-                    STATUS: {loginStatus === "CONNECTING" && "INITIALIZING SECURE LINK..."}
-                    {loginStatus === "AUTHORIZING" && "VERIFYING PASSKEY MATRIX..."}
-                    {loginStatus === "GRANTED" && "IDENTITY VALIDATED. ROUTING..."}
-                    {loginStatus === "ERROR" && "COMPLIANCE BREACH: DENIED"}
-                  </span>
-                </div>
-                {loginStatus === "ERROR" && (
-                  <button onClick={resetForm} className="text-[9px] underline hover:text-red-300">
-                    [RETRY]
-                  </button>
-                )}
+        {/* ─── Floating Metric Cards Grid ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="relative z-10 grid grid-cols-2 gap-3 my-8 max-w-lg"
+        >
+          {METRIC_CARDS.map((card, i) => (
+            <motion.div
+              key={card.label}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4, delay: 0.3 + i * 0.1 }}
+              className={`relative rounded-xl border border-white/[0.06] bg-gradient-to-br ${card.color} backdrop-blur-sm p-4 group hover:border-white/[0.12] transition-all duration-300`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">{card.label}</span>
+                <card.icon className="h-3.5 w-3.5 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
               </div>
-            )}
+              <span className="text-xl font-black text-white font-mono tracking-tight">{card.value}</span>
+            </motion.div>
+          ))}
+        </motion.div>
 
-            {/* Credentials Submission Form */}
-            <form onSubmit={handleLoginSubmit} className="w-full space-y-5">
-              
-              {/* Field 1: Username Input */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-[11px] font-semibold tracking-wider text-[#999]">
-                  <label htmlFor="username" className="font-mono flex items-center gap-1.5">
-                    <span className="text-cyber-green">[01]</span> USER IDENTIFIER
-                  </label>
-                  <span className="text-[#555]">[REQUIRED]</span>
+        {/* ─── Features Checklist ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="relative z-10 space-y-2.5 max-w-md"
+        >
+          {FEATURES.map((feat, i) => (
+            <motion.div
+              key={feat.label}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: 0.6 + i * 0.08 }}
+              className="flex items-center gap-3 group"
+            >
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-green/10 border border-brand-green/20 group-hover:border-brand-green/40 transition-colors">
+                <feat.icon className="h-3.5 w-3.5 text-brand-green" />
+              </div>
+              <span className="text-sm text-zinc-400 font-medium group-hover:text-zinc-300 transition-colors">{feat.label}</span>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* ─── Bottom copyright ─── */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 1 }}
+          className="relative z-10 text-[11px] text-zinc-600 mt-6"
+        >
+          © 2026 VendorBridge Corp. Enterprise Procurement Platform.
+        </motion.div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* RIGHT PANEL – Authentication Card                       */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-[440px]"
+        >
+          {/* ─── Glass Card Container ─── */}
+          <div className="relative rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-xl shadow-[0_8px_60px_-12px_rgba(0,0,0,0.8)] overflow-hidden">
+
+            {/* Top accent line */}
+            <div className="h-[2px] bg-gradient-to-r from-transparent via-brand-green/60 to-transparent" />
+
+            <div className="p-8 sm:p-10">
+
+              {/* ─── Mobile Logo (shown only on small screens) ─── */}
+              <div className="flex items-center gap-2.5 mb-8 lg:hidden">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-green/10 border border-brand-green/30">
+                  <div className="h-2 w-2 rounded-full bg-brand-green animate-pulse" />
                 </div>
-                
-                <div className="relative flex items-center">
-                  <span className="absolute left-3.5 text-xs text-cyber-green/60 select-none">
-                    [USR] &gt;
-                  </span>
-                  <input
-                    id="username"
-                    type="text"
-                    required
-                    disabled={isSubmitting || loginStatus === "GRANTED"}
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter terminal name..."
-                    className="w-full pl-[70px] pr-4 py-3 bg-black/45 border border-cyber-green/30 rounded text-sm text-[#eee] font-mono placeholder:text-zinc-700 outline-none focus:border-cyber-green focus:shadow-[0_0_12px_rgba(34,197,94,0.25)] transition-all duration-300 disabled:opacity-50"
-                  />
-                </div>
+                <span className="text-lg font-bold tracking-tight text-white">VendorBridge</span>
               </div>
 
-              {/* Field 2: Password Input */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-[11px] font-semibold tracking-wider text-[#999]">
-                  <label htmlFor="password" className="font-mono flex items-center gap-1.5">
-                    <span className="text-cyber-green">[02]</span> SYSTEM SECURITY KEY
-                  </label>
-                  <span className="text-[#555]">[ENCRYPTED]</span>
-                </div>
-                
-                <div className="relative flex items-center">
-                  <span className="absolute left-3.5 text-xs text-cyber-green/60 select-none">
-                    [PWD] &gt;
-                  </span>
-                  <input
-                    id="password"
-                    type="password"
-                    required
-                    disabled={isSubmitting || loginStatus === "GRANTED"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••••"
-                    className="w-full pl-[70px] pr-4 py-3 bg-black/45 border border-cyber-green/30 rounded text-sm text-[#eee] font-mono placeholder:text-zinc-700 outline-none focus:border-cyber-green focus:shadow-[0_0_12px_rgba(34,197,94,0.25)] transition-all duration-300 disabled:opacity-50"
-                  />
-                </div>
+              {/* ─── Header ─── */}
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold tracking-tight text-white mb-1.5">
+                  Welcome Back
+                </h2>
+                <p className="text-sm text-zinc-500">
+                  Sign in to continue managing procurement operations.
+                </p>
               </div>
 
-              {/* Form Options Wrapper: Remember & Forgot Pass */}
-              <div className="flex items-center justify-between text-[11px] pt-1">
-                {/* Remember Me Checkbox */}
-                <label className="flex items-center gap-2 cursor-pointer text-[#aaa] hover:text-[#eee] transition-colors select-none text-xs">
-                  <div className="relative flex items-center justify-center">
-                    <input
-                      type="checkbox"
-                      disabled={isSubmitting || loginStatus === "GRANTED"}
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    {/* Custom Checkbox visual box */}
-                    <div className="w-3.5 h-3.5 border border-cyber-green/40 bg-black peer-checked:bg-cyber-green/20 peer-checked:border-cyber-green rounded-sm transition-colors flex items-center justify-center">
-                      {rememberMe && (
-                        <span className="w-1.5 h-1.5 bg-cyber-green rounded-sm shadow-[0_0_4px_#22C55E]"></span>
-                      )}
+              {/* ─── Success State ─── */}
+              <AnimatePresence>
+                {success && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3"
+                  >
+                    <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-emerald-400">Login Successful</p>
+                      <p className="text-xs text-emerald-400/60">Redirecting to your dashboard...</p>
                     </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* ─── Error State ─── */}
+              <AnimatePresence>
+                {error && !success && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="mb-6 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400 flex items-center gap-2.5"
+                  >
+                    <Zap className="h-4 w-4 shrink-0" />
+                    {error}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* ─── Login Form ─── */}
+              <form onSubmit={handleSubmit} className="space-y-5">
+
+                {/* Email Field */}
+                <div className="space-y-2">
+                  <label htmlFor="login-email" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Mail className="h-3 w-3 text-zinc-500" />
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="login-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => { setEmail(e.target.value); setError(""); }}
+                      disabled={isSubmitting || success}
+                      placeholder="you@company.com"
+                      autoComplete="email"
+                      className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-zinc-600 outline-none focus:border-brand-green/50 focus:ring-1 focus:ring-brand-green/20 transition-all duration-200 disabled:opacity-50 font-sans"
+                    />
                   </div>
-                  <span>REMEMBER_OPERATOR</span>
-                </label>
+                </div>
 
-                {/* Forgot Password Link */}
-                <a 
-                  href="#forgot" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setTerminalLogs(prev => [...prev.slice(-2), "SYS.LOG: FORGOT PASSWORD REQUEST DISPATCHED.", "INSTRUCTION: PLEASE CONTACT LOCAL IT COMPLIANCE OFFICE."]);
-                  }}
-                  className="text-cyber-green/70 hover:text-cyber-green hover:underline transition-colors"
-                >
-                  FORGOT_KEY?
-                </a>
-              </div>
+                {/* Password Field */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="login-password" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <Lock className="h-3 w-3 text-zinc-500" />
+                      Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {}}
+                      className="text-xs text-brand-green/70 hover:text-brand-green transition-colors font-medium"
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input
+                      id="login-password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                      disabled={isSubmitting || success}
+                      placeholder="••••••••"
+                      autoComplete="current-password"
+                      className="w-full px-4 py-3 pr-11 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder:text-zinc-600 outline-none focus:border-brand-green/50 focus:ring-1 focus:ring-brand-green/20 transition-all duration-200 disabled:opacity-50 font-sans"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
 
-              {/* Action Button: Primary Login */}
-              <div className="pt-2">
+                {/* Remember Me */}
+                <div className="flex items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setRememberMe(!rememberMe)}
+                    className={`h-4 w-4 rounded border transition-all duration-200 flex items-center justify-center shrink-0 ${
+                      rememberMe
+                        ? "bg-brand-green/20 border-brand-green/50"
+                        : "bg-transparent border-white/[0.12] hover:border-white/[0.2]"
+                    }`}
+                  >
+                    {rememberMe && <div className="h-1.5 w-1.5 rounded-sm bg-brand-green" />}
+                  </button>
+                  <span className="text-xs text-zinc-500 font-medium select-none">Remember me on this device</span>
+                </div>
+
+                {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={isSubmitting || loginStatus === "GRANTED"}
-                  className="relative w-full py-3.5 bg-cyber-green text-black font-extrabold tracking-[0.2em] rounded text-xs uppercase cursor-pointer hover:bg-transparent hover:text-cyber-green border border-transparent hover:border-cyber-green hover:shadow-[0_0_20px_rgba(34,197,94,0.4)] transition-all duration-300 select-none flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed group overflow-hidden"
+                  disabled={isSubmitting || success}
+                  className="w-full py-3.5 rounded-xl bg-brand-green text-zinc-950 font-bold text-sm tracking-wide flex items-center justify-center gap-2 hover:bg-brand-green-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(74,222,128,0.15)] hover:shadow-[0_0_30px_rgba(74,222,128,0.25)] active:scale-[0.98] cursor-pointer"
                 >
-                  <span className="absolute left-0 bottom-0 top-0 w-[4px] bg-white opacity-0 group-hover:opacity-40 transition-opacity"></span>
-                  
                   {isSubmitting ? (
-                    <span className="flex items-center gap-2">
-                      <svg className="animate-spin h-3 w-3 text-black group-hover:text-cyber-green" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      ENGAGING CRYPTO...
-                    </span>
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : success ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4" />
+                      Redirecting...
+                    </>
                   ) : (
-                    "INITIALIZE ACCESS ROUTE"
+                    <>
+                      Sign In
+                      <ArrowRight className="h-4 w-4" />
+                    </>
                   )}
                 </button>
+              </form>
+
+
+
+              {/* ─── Register Link ─── */}
+              <div className="mt-7 text-center">
+                <p className="text-xs text-zinc-600">
+                  Don&apos;t have an account?{" "}
+                  <Link
+                    href="/register"
+                    className="text-brand-green/80 hover:text-brand-green font-semibold transition-colors inline-flex items-center gap-1"
+                  >
+                    Create Account <ChevronRight className="h-3 w-3" />
+                  </Link>
+                </p>
               </div>
-            </form>
 
-            {/* Separator Divider Lines */}
-            <div className="w-full flex items-center justify-center my-6 gap-2 opacity-30">
-              <span className="h-[1px] w-full bg-cyber-green/50"></span>
-              <span className="text-[8px] text-cyber-green tracking-widest whitespace-nowrap">NODE LINK</span>
-              <span className="h-[1px] w-full bg-cyber-green/50"></span>
             </div>
-
-            {/* Action 2: Register Account Option */}
-            <div className="text-center">
-              <a
-                href="/register"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setTerminalLogs(prev => [
-                    ...prev.slice(-2),
-                    "SYS.LOG: CONNECTING TO REGISTRATION WIZARD...",
-                    "SYS.LOG: HANDSHAKING WITH ONBOARDING NODE..."
-                  ]);
-                  setTimeout(() => {
-                    window.location.href = "/register";
-                  }, 800);
-                }}
-                className="text-xs text-[#666] hover:text-cyber-green transition-colors uppercase font-mono tracking-widest hover:glow-green"
-              >
-                // REGISTER NEW SECURE CREDENTIALS
-              </a>
-            </div>
-
-            {/* Quick Sign In Grid (Futuristic Dark Cyberpunk styling) */}
-            <div className="w-full mt-6 p-4 rounded border border-cyber-green/15 bg-black/40">
-              <p className="text-[9px] font-bold text-[#666] tracking-wider mb-2.5 uppercase">// QUICK ACCESS NODES</p>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { label: "Admin Node", email: "admin@vendorbridge.com", pw: "admin123" },
-                  { label: "Procurement", email: "rahul@vendorbridge.com", pw: "rahul123" },
-                  { label: "Manager", email: "amit@vendorbridge.com", pw: "amit123" },
-                  { label: "Vendor (Dell)", email: "dell@vendor.com", pw: "dell123" },
-                ].map(acc => (
-                  <button key={acc.email} type="button" 
-                    onClick={() => { 
-                      setUsername(acc.email); 
-                      setPassword(acc.pw);
-                      setTerminalLogs(prev => [
-                        ...prev.slice(-2),
-                        `SYS.LOG: INJECTING ACC_MATRIX FOR ${acc.label.toUpperCase()}`
-                      ]);
-                    }}
-                    className="text-left p-2 border border-cyber-green/20 hover:border-cyber-green/60 hover:bg-cyber-green/5 transition-all text-xs cursor-pointer rounded bg-black/60">
-                    <span className="font-bold text-cyber-green/90 text-[10px] block">{acc.label}</span>
-                    <span className="block text-[#666] text-[8px] mt-0.5 truncate">{acc.email}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Simulated Live Console Log Window Inside Auth Card */}
-            <div className="w-full mt-5 p-3 bg-black/85 border border-cyber-green/15 rounded text-[9px] font-mono text-cyber-green/75 space-y-1 max-h-[85px] overflow-hidden">
-              <div className="text-cyber-green/40 flex justify-between border-b border-cyber-green/10 pb-1 mb-1.5 uppercase font-bold text-[8px] tracking-wider">
-                <span>SYSTEM CONSOLE LOGS</span>
-                <span className="animate-pulse">● LIVE_FEED</span>
-              </div>
-              {terminalLogs.map((log, index) => (
-                <div key={index} className="truncate select-text selection:bg-cyber-green/30">
-                  <span className="text-cyber-green/30">&gt; </span>
-                  {log}
-                </div>
-              ))}
-            </div>
-
           </div>
-        </div>
 
-      </main>
+          {/* ─── Bottom Security Badge ─── */}
+          <div className="mt-5 flex items-center justify-center gap-2 text-[10px] text-zinc-600">
+            <Lock className="h-3 w-3" />
+            <span>Secured with TLS 1.3 encryption • AES-256-GCM</span>
+          </div>
 
-      {/* 4. Bottom status bar */}
-      <footer className="relative w-full h-10 flex items-center justify-between px-4 border-t border-cyber-green/20 bg-black/80 backdrop-blur-sm z-20 text-[10px] text-[#777] font-mono uppercase tracking-wider">
-        {/* Status System State */}
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyber-green opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-cyber-green animate-blink"></span>
-          </span>
-          <span>SYSTEM_STATUS: <span className="text-cyber-green font-bold glow-green">ONLINE</span></span>
-        </div>
-
-        {/* Secure connection details */}
-        <div className="hidden sm:block">
-          ENCRYPTION: <span className="text-cyber-green/80">SECURE SOCKET [AES-256-GCM]</span>
-        </div>
-
-        {/* Build version */}
-        <div>
-          VERSION_NODE: <span className="text-cyber-green/85">v1.0.0</span>
-        </div>
-      </footer>
-
+        </motion.div>
+      </div>
     </div>
   );
 }

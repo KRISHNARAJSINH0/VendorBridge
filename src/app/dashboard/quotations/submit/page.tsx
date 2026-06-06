@@ -30,10 +30,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getRFQsAction } from "@/lib/actions/rfq";
-import { getVendorsAction } from "@/lib/actions/vendor";
-import { createQuotationAction } from "@/lib/actions/quotation";
-import { RFQ, Vendor } from "@/lib/db";
+import { RFQ, Vendor } from "@/lib/types";
+import { useAppState } from "@/context/StateContext";
+import { useAuth } from "@/context/auth-context";
 
 interface QuoteItemInput {
   rfqItemId: string;
@@ -60,14 +59,16 @@ export default function SubmitQuotationPage() {
 function SubmitQuotationPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+  const { user: currentUser } = useAuth();
+  const { rfqs: allRfqs, vendors: allVendors, submitQuotation } = useAppState();
+
   // URL Pre-selection
   const preSelectedRfqId = searchParams.get("rfqId") || "";
 
   // Data lists
-  const [rfqs, setRfqs] = useState<RFQ[]>([]);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [loading, setLoading] = useState(true);
+  const rfqs = useMemo(() => allRfqs.filter((r: RFQ) => r.status === "Active"), [allRfqs]);
+  const vendors = useMemo(() => allVendors.filter((v: Vendor) => v.status === "Active"), [allVendors]);
+  const loading = false;
 
   // Form State
   const [selectedRfqId, setSelectedRfqId] = useState<string>("");
@@ -81,65 +82,59 @@ function SubmitQuotationPageContent() {
   // Editable quotation table items
   const [quoteItems, setQuoteItems] = useState<QuoteItemInput[]>([]);
 
-  // Fetch RFQs and Vendors
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [rfqList, vendorList] = await Promise.all([
-          getRFQsAction(),
-          getVendorsAction(),
-        ]);
-        
-        // Only allow bidding on published RFQs
-        const publishedRfqs = rfqList.filter(r => r.status === "Published");
-        setRfqs(publishedRfqs);
-        
-        // Only allow active vendors to bid
-        const activeVendors = vendorList.filter(v => v.status === "Active");
-        setVendors(activeVendors);
+  // Filter RFQs: Vendors should only see RFQs they are assigned to
+  const filteredRfqs = useMemo(() => {
+    if (currentUser?.role === "Vendor" && currentUser.vendorId) {
+      const vid = currentUser.vendorId;
+      return rfqs.filter((r: RFQ) => r.assignedVendors?.includes(vid));
+    }
+    return rfqs;
+  }, [rfqs, currentUser]);
 
-        // Handle pre-selection from URL query parameter
-        if (preSelectedRfqId && publishedRfqs.some(r => r.id === preSelectedRfqId)) {
-          setSelectedRfqId(preSelectedRfqId);
-        }
-      } catch (e) {
-        console.error(e);
-        toast.error("Failed to load reference data");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, [preSelectedRfqId]);
+  // Auto-select vendor profile if the user is a Vendor
+  useEffect(() => {
+    if (currentUser?.role === "Vendor" && currentUser.vendorId) {
+      setSelectedVendorId(currentUser.vendorId);
+    }
+  }, [currentUser]);
+
+  // Handle pre-selection from URL query parameter
+  useEffect(() => {
+    if (preSelectedRfqId && rfqs.some((r: RFQ) => r.id === preSelectedRfqId)) {
+      setSelectedRfqId(preSelectedRfqId);
+    }
+  }, [preSelectedRfqId, rfqs]);
 
   // Selected RFQ object
   const selectedRfq = useMemo(() => {
-    return rfqs.find((r) => r.id === selectedRfqId);
-  }, [rfqs, selectedRfqId]);
+    return filteredRfqs.find((r: RFQ) => r.id === selectedRfqId);
+  }, [filteredRfqs, selectedRfqId]);
 
   // Populate line items table when RFQ changes
   useEffect(() => {
     if (selectedRfq) {
-      const inputs = selectedRfq.items.map((item) => ({
-        rfqItemId: item.id,
-        itemName: item.itemName,
-        quantity: item.quantity,
+      const inputs = selectedRfq.items.map((item: any) => ({
+        rfqItemId: item.name,
+        itemName: item.name,
+        quantity: item.qty,
         unitPrice: 0, // start with 0
         deliveryDays: 7, // default delivery days
       }));
       setQuoteItems(inputs);
 
       // Try to auto-select vendor if there's only one assigned (or default to first assigned)
-      if (selectedRfq.vendorIds && selectedRfq.vendorIds.length > 0) {
-        const primaryVendor = selectedRfq.vendorIds[0];
-        if (vendors.some((v) => v.id === primaryVendor)) {
+      if (currentUser?.role === "Vendor" && currentUser.vendorId) {
+        setSelectedVendorId(currentUser.vendorId);
+      } else if (selectedRfq.assignedVendors && selectedRfq.assignedVendors.length > 0) {
+        const primaryVendor = selectedRfq.assignedVendors[0];
+        if (vendors.some((v: Vendor) => v.id === primaryVendor)) {
           setSelectedVendorId(primaryVendor);
         }
       }
     } else {
       setQuoteItems([]);
     }
-  }, [selectedRfq, vendors]);
+  }, [selectedRfq, vendors, currentUser]);
 
   // Update item field dynamically
   const handleItemFieldChange = (index: number, field: keyof QuoteItemInput, value: any) => {
@@ -189,37 +184,26 @@ function SubmitQuotationPageContent() {
 
     setSubmitting(true);
     
-    const selectedVendorName = vendors.find((v) => v.id === selectedVendorId)?.name || "Vendor";
+    const selectedVendorName = vendors.find((v: Vendor) => v.id === selectedVendorId)?.name || "Vendor";
 
     const quotationData = {
       rfqId: selectedRfqId,
-      rfqTitle: selectedRfq?.title || "RFQ Reference",
       vendorId: selectedVendorId,
-      vendorName: selectedVendorName,
-      status: isDraft ? ("Draft" as const) : ("Submitted" as const),
-      subtotal: calculatedTotals.subtotal,
-      gstPercent,
-      grandTotal: calculatedTotals.grandTotal,
-      paymentTerms,
-      warranty,
-      notes,
+      totalPrice: calculatedTotals.grandTotal,
+      deliveryDays: Math.max(...quoteItems.map((qi) => qi.deliveryDays), 7),
+      remarks: notes,
       items: quoteItems.map((item) => ({
-        id: "qi-" + Math.random().toString(36).substring(7),
-        rfqItemId: item.rfqItemId,
-        itemName: item.itemName,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        total: item.quantity * item.unitPrice,
-        deliveryDays: item.deliveryDays,
-      })),
+        name: item.itemName,
+        price: item.unitPrice
+      }))
     };
 
     try {
-      await createQuotationAction(quotationData);
+      await submitQuotation(quotationData);
       toast.success(isDraft ? "Quotation saved as draft" : "Quotation submitted successfully", {
         description: `Bid sent to procurement desk for "${selectedRfq?.title}".`,
       });
-      router.push("/dashboard/quotations");
+      router.push("/quotations");
     } catch (err) {
       toast.error("Failed to submit quotation");
     } finally {
@@ -264,7 +248,7 @@ function SubmitQuotationPageContent() {
                       <SelectValue placeholder="Select active RFQ..." />
                     </SelectTrigger>
                     <SelectContent className="bg-card border border-border/40 text-xs">
-                      {rfqs.map((rfq) => (
+                      {filteredRfqs.map((rfq: RFQ) => (
                         <SelectItem key={rfq.id} value={rfq.id} className="text-xs cursor-pointer">
                           {rfq.title}
                         </SelectItem>
@@ -276,12 +260,16 @@ function SubmitQuotationPageContent() {
                 {/* Select Vendor Identity */}
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold">Select Bidding Vendor *</Label>
-                  <Select value={selectedVendorId} onValueChange={setSelectedVendorId}>
-                    <SelectTrigger className="bg-secondary/40 border-border/60 text-xs h-9 focus:border-brand-green-border">
+                  <Select 
+                    value={selectedVendorId} 
+                    onValueChange={setSelectedVendorId}
+                    disabled={currentUser?.role === "Vendor"}
+                  >
+                    <SelectTrigger className="bg-secondary/40 border-border/60 text-xs h-9 focus:border-brand-green-border disabled:opacity-80 disabled:cursor-not-allowed">
                       <SelectValue placeholder="Select vendor profile..." />
                     </SelectTrigger>
                     <SelectContent className="bg-card border border-border/40 text-xs">
-                      {vendors.map((vendor) => (
+                      {vendors.map((vendor: Vendor) => (
                         <SelectItem key={vendor.id} value={vendor.id} className="text-xs cursor-pointer">
                           {vendor.name}
                         </SelectItem>

@@ -2,36 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { getVendorsAction } from "@/lib/actions/vendor";
 import { VendorStats } from "@/components/vendors/vendor-stats";
 import { VendorFilters } from "@/components/vendors/vendor-filters";
 import { VendorTable } from "@/components/vendors/vendor-table";
 import { AddVendorDialog } from "@/components/vendors/add-vendor-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Vendor } from "@/lib/db";
+import { Vendor } from "@/lib/types";
+import { useAppState } from "@/context/StateContext";
 
 export default function VendorsPage() {
   const pathname = usePathname();
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { vendors } = useAppState();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
 
-  // Load vendors
-  const loadVendors = async () => {
-    try {
-      const data = await getVendorsAction();
-      setVendors(data);
-    } catch (error) {
-      console.error("Failed to load vendors", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadVendors();
-  }, []);
+  const loading = false;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -42,7 +27,7 @@ export default function VendorsPage() {
   }, [pathname]);
 
   // Filtered vendors
-  const filteredVendors = vendors.filter((vendor) => {
+  const filteredVendors = vendors.filter((vendor: Vendor) => {
     const matchesStatus =
       selectedStatus === "All" || vendor.status === selectedStatus;
 
@@ -70,7 +55,7 @@ export default function VendorsPage() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <AddVendorDialog onSuccess={loadVendors} />
+          <AddVendorDialog />
         </div>
       </div>
 

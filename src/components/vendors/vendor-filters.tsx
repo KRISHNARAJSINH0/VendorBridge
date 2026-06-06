@@ -2,7 +2,7 @@
 
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Vendor } from "@/lib/db";
+import { Vendor } from "@/lib/types";
 
 interface VendorFiltersProps {
   vendors: Vendor[];
