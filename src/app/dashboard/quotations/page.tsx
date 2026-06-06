@@ -53,6 +53,9 @@ export default function QuotationListPage() {
     if (search !== null) {
       setSearchQuery(search);
     }
+    if (params.get("compare") === "true") {
+      setShowComparison(true);
+    }
   }, [pathname]);
 
   const getStatusBadge = (status: Quotation["status"]) => {
