@@ -86,6 +86,7 @@ export function Navbar() {
 
   // Resolve Page Title
   const getPageTitle = () => {
+    if (pathname === "/") return "Dashboard";
     if (pathname.startsWith("/vendors")) return "Vendor Management";
     if (pathname.startsWith("/rfqs/create")) return "Create RFQ";
     if (pathname.startsWith("/rfqs")) return "Request For Quotations";
@@ -97,10 +98,15 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border/40 bg-background/80 px-8 backdrop-blur-md">
       {/* Title */}
-      <div>
+      <div className="flex flex-col gap-0.5">
         <h1 className="text-sm font-semibold tracking-tight text-foreground">
           {getPageTitle()}
         </h1>
+        {pathname === "/" && (
+          <p className="text-[10px] text-muted-foreground font-medium animate-in fade-in slide-in-from-left-1 duration-300">
+            Welcome back, Procurement Officer
+          </p>
+        )}
       </div>
 
       {/* Right Controls */}

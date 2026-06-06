@@ -47,7 +47,7 @@ export default function QuotationComparison({
   const [isSubmittingApproval, setIsSubmittingApproval] = useState<boolean>(false);
 
   const activeRfq = useMemo(() => {
-    return rfqs.find((r) => r.id === selectedRfqId) || rfqs[0];
+    return rfqs.find((r) => r.id === selectedRfqId) || rfqs[0] || null;
   }, [rfqs, selectedRfqId]);
 
   // Filter quotations submitted for this RFQ
@@ -204,6 +204,36 @@ export default function QuotationComparison({
             </Button>
           </div>
         </motion.div>
+      </div>
+    );
+  }
+
+  if (!activeRfq) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-border/40 pb-5">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={onBack}
+                className="text-muted-foreground hover:text-foreground h-8 w-8 cursor-pointer"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+                Quotation Comparison
+              </h2>
+            </div>
+            <p className="text-xs text-muted-foreground pl-10">
+              Loading comparison data...
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center justify-center py-16">
+          <RefreshCw className="h-6 w-6 text-muted-foreground animate-spin" />
+        </div>
       </div>
     );
   }

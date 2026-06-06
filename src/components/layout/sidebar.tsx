@@ -3,10 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Building2, FileText, ReceiptText } from "lucide-react";
+import { Building2, FileText, ReceiptText, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
+  {
+    name: "Dashboard",
+    href: "/",
+    icon: LayoutDashboard,
+  },
   {
     name: "Vendors",
     href: "/vendors",
