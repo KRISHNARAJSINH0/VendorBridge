@@ -61,6 +61,16 @@
       "role": "Procurement Officer",
       "status": "Active",
       "createdAt": "2026-02-10T00:00:00.000Z"
+    },
+    {
+      "firstName": "d",
+      "lastName": "R",
+      "email": "d@gmail.com",
+      "password": "D@2007",
+      "role": "Manager",
+      "status": "Active",
+      "id": "u-mq2agryx-eiq8",
+      "createdAt": "2026-06-06T11:47:42.105Z"
     }
   ],
   "vendors": [
@@ -502,6 +512,24 @@
       "description": "Rahul Kumar logged in as Procurement Officer",
       "id": "log-mq28jbg3-ftqv",
       "createdAt": "2026-06-06T10:53:41.427Z"
+    },
+    {
+      "userId": "u-2",
+      "userName": "Rahul Kumar",
+      "role": "Procurement Officer",
+      "action": "LOGIN",
+      "description": "Rahul Kumar logged in as Procurement Officer",
+      "id": "log-mq29tl7m-n7l3",
+      "createdAt": "2026-06-06T11:29:40.258Z"
+    },
+    {
+      "userId": "u-mq2agryx-eiq8",
+      "userName": "d R",
+      "role": "Manager",
+      "action": "REGISTER",
+      "description": "d R registered as Manager",
+      "id": "log-mq2agrze-2f6w",
+      "createdAt": "2026-06-06T11:47:42.122Z"
     }
   ],
   "notifications": [
@@ -568,6 +596,14 @@
       "message": "Dell Technologies submitted QT-2026-0004 for Network Switch Procurement — ₹1,40,000",
       "isRead": false,
       "createdAt": "2026-05-22T04:30:00.000Z"
+    },
+    {
+      "userId": "u-1",
+      "title": "New User Registered",
+      "message": "d R registered as Manager",
+      "isRead": false,
+      "id": "n-mq2agrzx-6epv",
+      "createdAt": "2026-06-06T11:47:42.142Z"
     }
   ]
 }
