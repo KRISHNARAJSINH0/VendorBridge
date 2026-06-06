@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Building2, FileText, ReceiptText } from "lucide-react";
+import { Building2, FileText, ReceiptText, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -24,6 +24,12 @@ const NAV_ITEMS = [
     href: "/quotations",
     icon: ReceiptText,
     isActive: (pathname: string) => pathname.startsWith("/quotations"),
+  },
+  {
+    name: "Reports",
+    href: "/reports",
+    icon: BarChart3,
+    isActive: (pathname: string) => pathname.startsWith("/reports"),
   },
 ];
 
