@@ -9,59 +9,231 @@ datasource db {
   provider = "postgresql"
 }
 
-model VendorProfile {
-  id               Int         @id @default(autoincrement())
-  name             String
-  email            String      @unique
-  complianceStatus String      @default("PENDING") // PENDING, APPROVED, REJECTED
-  documents        String      @default("[]")      // JSON string list of filenames
-  joinedAt         DateTime    @default(now())
-  quotations       Quotation[]
+model Role {
+  id    Int    @id @default(autoincrement()) @map("id")
+  name  String @unique @db.VarChar(50) @map("name")
+  users User[]
+
+  @@map("roles")
+}
+
+model User {
+  id           Int           @id @default(autoincrement()) @map("id")
+  roleId       Int           @map("role_id")
+  role         Role          @relation(fields: [roleId], references: [id])
+  fullName     String        @db.VarChar(150) @map("full_name")
+  email        String        @unique @db.VarChar(150) @map("email")
+  passwordHash String        @map("password_hash")
+  phone        String?       @db.VarChar(20) @map("phone")
+  isActive     Boolean       @default(true) @map("is_active")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @default(now()) @updatedAt @map("updated_at")
+  rfqs         RFQ[]
+  approvals    Approval[]
+  purchaseOrders PurchaseOrder[]
+  notifications Notification[]
+  activityLogs ActivityLog[]
+  attachments  Attachment[]
+
+  @@map("users")
+}
+
+model Vendor {
+  id            Int             @id @default(autoincrement()) @map("id")
+  companyName   String          @db.VarChar(255) @map("company_name")
+  vendorCode    String?         @unique @db.VarChar(50) @map("vendor_code")
+  gstNumber     String?         @db.VarChar(50) @map("gst_number")
+  contactPerson String?         @db.VarChar(150) @map("contact_person")
+  email         String?         @db.VarChar(150) @map("email")
+  phone         String?         @db.VarChar(20) @map("phone")
+  address       String?         @map("address")
+  category      String?         @db.VarChar(100) @map("category")
+  rating        Decimal?        @default(0) @db.Decimal(2, 1) @map("rating")
+  status        String?         @default("ACTIVE") @db.VarChar(30) @map("status")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @default(now()) @updatedAt @map("updated_at")
+  rfqVendors    RFQVendor[]
+  quotations    Quotation[]
+  purchaseOrders PurchaseOrder[]
+  invoices      Invoice[]
+
+  @@map("vendors")
 }
 
 model RFQ {
-  id             Int             @id @default(autoincrement())
-  title          String
-  description    String
-  status         String          @default("DRAFT") // DRAFT, OPEN, CLOSED
-  items          String          @default("[]")    // JSON list of objects: [{description, quantity}]
-  createdAt      DateTime        @default(now())
+  id             Int             @id @default(autoincrement()) @map("id")
+  rfqNumber      String          @unique @db.VarChar(50) @map("rfq_number")
+  title          String          @db.VarChar(255) @map("title")
+  description    String?         @map("description")
+  deadline       DateTime?       @map("deadline")
+  status         String?         @default("DRAFT") @db.VarChar(50) @map("status")
+  createdById    Int?            @map("created_by")
+  createdBy      User?           @relation(fields: [createdById], references: [id])
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @default(now()) @updatedAt @map("updated_at")
+  items          RFQItem[]
+  rfqVendors     RFQVendor[]
   quotations     Quotation[]
-  purchaseOrders PurchaseOrder[]
+  attachments    Attachment[]
+
+  @@map("rfqs")
+}
+
+model RFQItem {
+  id          Int      @id @default(autoincrement()) @map("id")
+  rfqId       Int      @map("rfq_id")
+  rfq         RFQ      @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  itemName    String   @db.VarChar(255) @map("item_name")
+  description String?  @map("description")
+  quantity    Decimal  @db.Decimal(12, 2) @map("quantity")
+  unit        String?  @db.VarChar(50) @map("unit")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("rfq_items")
+}
+
+model RFQVendor {
+  id        Int      @id @default(autoincrement()) @map("id")
+  rfqId     Int?     @map("rfq_id")
+  rfq       RFQ?     @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  vendorId  Int?     @map("vendor_id")
+  vendor    Vendor?  @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  status    String?  @default("INVITED") @db.VarChar(30) @map("status")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("rfq_vendors")
 }
 
 model Quotation {
-  id             Int             @id @default(autoincrement())
-  rfqId          Int
-  rfq            RFQ             @relation(fields: [rfqId], references: [id], onDelete: Cascade)
-  vendorId       Int
-  vendor         VendorProfile   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-  price          Float
-  deliveryDays   Int
-  status         String          @default("SUBMITTED") // SUBMITTED, SELECTED, REJECTED
-  remarks        String?
-  createdAt      DateTime        @default(now())
-  purchaseOrders PurchaseOrder[]
+  id              Int             @id @default(autoincrement()) @map("id")
+  quotationNumber String          @unique @db.VarChar(50) @map("quotation_number")
+  rfqId           Int             @map("rfq_id")
+  rfq             RFQ             @relation(fields: [rfqId], references: [id])
+  vendorId        Int             @map("vendor_id")
+  vendor          Vendor          @relation(fields: [vendorId], references: [id])
+  totalAmount     Decimal?        @default(0) @db.Decimal(15, 2) @map("total_amount")
+  deliveryDays    Int?            @map("delivery_days")
+  notes           String?         @map("notes")
+  status          String?         @default("SUBMITTED") @db.VarChar(30) @map("status")
+  submittedAt     DateTime?       @map("submitted_at")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  items           QuotationItem[]
+  approvals       Approval[]
+  purchaseOrders  PurchaseOrder[]
+
+  @@map("quotations")
+}
+
+model QuotationItem {
+  id          Int       @id @default(autoincrement()) @map("id")
+  quotationId Int       @map("quotation_id")
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  itemName    String?   @db.VarChar(255) @map("item_name")
+  quantity    Decimal?  @db.Decimal(12, 2) @map("quantity")
+  unitPrice   Decimal?  @db.Decimal(15, 2) @map("unit_price")
+  taxPercent  Decimal?  @db.Decimal(5, 2) @map("tax_percent")
+  subtotal    Decimal?  @db.Decimal(15, 2) @map("subtotal")
+
+  @@map("quotation_items")
+}
+
+model Approval {
+  id          Int       @id @default(autoincrement()) @map("id")
+  quotationId Int       @map("quotation_id")
+  quotation   Quotation @relation(fields: [quotationId], references: [id])
+  managerId   Int       @map("manager_id")
+  manager     User      @relation(fields: [managerId], references: [id])
+  status      String?   @default("PENDING") @db.VarChar(30) @map("status")
+  remarks     String?   @map("remarks")
+  approvedAt  DateTime? @map("approved_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("approvals")
 }
 
 model PurchaseOrder {
-  id              Int        @id @default(autoincrement())
-  rfqId           Int
-  rfq             RFQ        @relation(fields: [rfqId], references: [id], onDelete: Cascade)
-  quotationId     Int
-  quotation       Quotation  @relation(fields: [quotationId], references: [id], onDelete: Cascade)
-  status          String     @default("DRAFT") // DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, SENT, COMPLETED
-  approvalRemarks String?
-  approvedBy      String?
-  createdAt       DateTime   @default(now())
-  invoices        Invoice[]
+  id          Int                 @id @default(autoincrement()) @map("id")
+  poNumber    String              @unique @db.VarChar(50) @map("po_number")
+  quotationId Int                 @map("quotation_id")
+  quotation   Quotation           @relation(fields: [quotationId], references: [id])
+  vendorId    Int                 @map("vendor_id")
+  vendor      Vendor              @relation(fields: [vendorId], references: [id])
+  createdById Int?                @map("created_by")
+  createdBy   User?               @relation(fields: [createdById], references: [id])
+  totalAmount Decimal?            @db.Decimal(15, 2) @map("total_amount")
+  status      String?             @default("CREATED") @db.VarChar(30) @map("status")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  items       PurchaseOrderItem[]
+  invoices    Invoice[]
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id              Int           @id @default(autoincrement()) @map("id")
+  purchaseOrderId Int           @map("purchase_order_id")
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  itemName        String?       @db.VarChar(255) @map("item_name")
+  quantity        Decimal?      @db.Decimal(12, 2) @map("quantity")
+  unitPrice       Decimal?      @db.Decimal(15, 2) @map("unit_price")
+  total           Decimal?      @db.Decimal(15, 2) @map("total")
+
+  @@map("purchase_order_items")
 }
 
 model Invoice {
-  id              Int           @id @default(autoincrement())
-  purchaseOrderId Int
-  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
-  amount          Float
-  status          String        @default("PENDING") // PENDING, PAID
-  createdAt       DateTime      @default(now())
+  id              Int           @id @default(autoincrement()) @map("id")
+  invoiceNumber   String        @unique @db.VarChar(50) @map("invoice_number")
+  purchaseOrderId Int           @map("purchase_order_id")
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  vendorId        Int           @map("vendor_id")
+  vendor          Vendor        @relation(fields: [vendorId], references: [id])
+  subtotal        Decimal?      @db.Decimal(15, 2) @map("subtotal")
+  taxAmount       Decimal?      @db.Decimal(15, 2) @map("tax_amount")
+  grandTotal      Decimal?      @db.Decimal(15, 2) @map("grand_total")
+  status          String?       @default("GENERATED") @db.VarChar(30) @map("status")
+  invoiceDate     DateTime?     @db.Date @map("invoice_date")
+  dueDate         DateTime?     @db.Date @map("due_date")
+  pdfUrl          String?       @map("pdf_url")
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  @@map("invoices")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement()) @map("id")
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  title     String?  @db.VarChar(255) @map("title")
+  message   String?  @map("message")
+  isRead    Boolean? @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("notifications")
+}
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement()) @map("id")
+  userId      Int?     @map("user_id")
+  user        User?    @relation(fields: [userId], references: [id])
+  entityType  String?  @db.VarChar(50) @map("entity_type")
+  entityId    Int?     @map("entity_id")
+  action      String?  @db.VarChar(50) @map("action")
+  description String?  @map("description")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("activity_logs")
+}
+
+model Attachment {
+  id           Int      @id @default(autoincrement()) @map("id")
+  rfqId        Int?     @map("rfq_id")
+  rfq          RFQ?     @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  fileName     String?  @db.VarChar(255) @map("file_name")
+  fileUrl      String?  @map("file_url")
+  uploadedById Int?     @map("uploaded_by")
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("attachments")
 }
